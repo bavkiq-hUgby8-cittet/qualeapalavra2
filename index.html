@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, user-scalable=no" />
   <title>Qual é a Palavra? - Updated Requests</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -319,7 +319,7 @@
                 id="doadorFoto"
                 src=""
                 alt="Foto do Doador"
-                class="w-20 h-20 object-cover rounded-full hidden"  <!-- Aumentado tamanho da imagem -->
+                class="w-20 h-20 object-cover rounded-full hidden"
               />
               <p class="text-lg font-bold text-blue-700">
                 <span id="doador" class="bg-white rounded px-2 py-1"></span>
@@ -354,7 +354,6 @@
               id="labelToggle"
               class="cursor-pointer bg-gray-300 p-2 rounded shadow flex items-center"
             >
-              <!-- Large icon -->
               <span id="eyeIcon" class="text-6xl">🙈</span>
             </label>
             <span
@@ -380,7 +379,7 @@
                 id="adivinhadorFoto"
                 src=""
                 alt="Foto do Adivinhador"
-                class="w-20 h-20 object-cover rounded-full hidden"  <!-- Aumentado tamanho -->
+                class="w-20 h-20 object-cover rounded-full hidden"
               />
               <p class="text-lg font-bold text-green-700">
                 <span id="adivinhador" class="bg-white rounded px-2 py-1"></span>
@@ -470,8 +469,6 @@
       return idiomaRadio ? idiomaRadio.value : 'PT-BR';
     }
 
-    // Add the existing code:
-
     let primeiraTentativa = true;
     let jogadores = [];
     let duplas = [];
@@ -489,13 +486,218 @@
 
     let modoDuplas = "aleatorio"; // control via 2 buttons
 
-    // GIGANTIC array de 2000 palavras (PT-BR), placeholders
-    const bigPTBR = Array.from({length:2000}, (_,i)=>`palavra${i+1}`);
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // SUBSTITUIR AQUI PELOS 2000 WORDS (PT-BR) - INLINED:
 
+    const bigPTBR = [
+      "Amor","Gato","Casa","Pão","Livre","Anel","Mesa","Bolo","Faro","Onça",
+      "Alvo","Vela","Lobo","Rato","Voto","Foco","Sede","Filme","Dente","Lua",
+      "Cedo","Fino","Fofo","Dique","Torre","Tigre","Raiz","Lata","Fase","Nexo",
+      "Rei","Rima","Leme","Sumo","Ruga","Arco","Golpe","Lobo","Sopa","Rude",
+      "Eco","Nota","Nata","Nuvem","Livro","Ócio","Mapa","Gema","Tato","Natal",
+      "Vivo","Tino","Mimo","Agro","Brio","Rocha","Vale","Tarde","Longe","Bravo",
+      "Doce","Calma","Morfo","Lento","Hidro","Cacho","Tenso","Gordo","Negro","Vadio",
+      "Nariz","Sarna","Abade","Lenda","Grito","Mural","Pente","Risco","Fardo","Rezar",
+      "Cinza","Sumir","Vagar","Toada","Avesso","Lazer","Riacho","Madeira","Trama","Narra",
+      "Fluir","Matar","Amora","Forte","Mover","Claro","Seco","Tocar","Velha","Sair",
+      "Solto","Surto","Gabar","Triunfo","Salvo","Queda","Fêmea","Sufixo","Arame","Fraco",
+      "Cenho","Ponto","Ermo","Super","Lúcido","Gênio","Alegre","Rápido","Veado","Embolo",
+      "Fanfarra","Gruta","Abrir","Veludo","Ajuda","Soltar","Padre","Treta","Herói","Balde",
+      "Limo","Sábio","Fuzil","Busto","Dócil","Fruir","Vênia","Corpo","Cardo","Ídolo",
+      "Direto","Nadador","Início","Peso","Meigo","Tacho","Etapa","Ávido","Redor","Harpa",
+      "Sovar","Pular","Dosar","Terno","Polir","Copo","Beijo","Sabor","Goma","Fungo",
+      "Visão","Erva","Moeda","Magma","Perda","Ganho","Malha","Árvore","Pedra","Mocho",
+      "Urro","Manso","Crase","Tique","Girar","Espirro","Baixo","Modem","Tombo","Chave",
+      "Criar","Tumba","Recriar","Axila","Ninar","Leito","Ginga","Terno","Forno","Trono",
+      "Otário","Carro","Arroz","Tigela","Manso","Época","Ração","Fruto","Sonho","Couro",
+      "Arranjo","Legume","Simples","Espora","Mexer","Eclipse","Trocar","Jangada","Fogão","Tostar",
+      "Lancha","Papiro","Éter","Tecido","Bromélia","Amargo","Caixa","Destro","Trovão","Renome",
+      "Subir","Metrô","Anexo","Pólen","Pardo","Quarto","Épico","Cenoura","Piloto","Homem",
+      "Traço","Pétala","Morte","Debate","Gramado","Destaque","Flanco","Tufão","Gaivota","Remir",
+      "Grimpa","Afeto","Letra","Mundo","Geração","Rachar","Mosca","Cachorro","Dureza","Protesto",
+      "Soquete","Afiado","Filtro","Preço","Orvalho","Sombra","Fronte","Zebrar","Inseto","Crânio",
+      "Dono","Vibra","Veneno","Nobre","Retino","Adendo","Lucro","Pus","Tosse","Navio",
+      "Sonoro","Fênix","Bacia","Cartaz","Xampu","Tecido","Cera","Concha","Subsolo","Átomo",
+      "Gastro","Pátio","Exame","Seguro","Colina","Feixe","Fasquia","Carneiro","Jiboia","Impressão",
+      "Estudo","Rabino","Gomo","Sucata","Relva","Saliva","Gueto","Frisar","Limite","Tranque",
+      "Jetom","Belga","Paulista","Venial","Cogito","Quadrado","Rasgar","Saldar","Astuta","Ferro",
+      "Insano","Sugestão","Espelho","Oculto","Espiga","Macaco","Argila","Coturno","Umbigo","Relento",
+      "Síncope","Salmão","Orquestra","Catequese","Mosteiro","Cutelo","Edícula","Itinerário","Nervura","Comportar",
+      "Sutil","Graveto","Viagem","Fenda","Lactose","Verbete","Fígado","Garupa","Manga","Rímel",
+      "Saudade","Pateta","Corrida","Pacote","Bafora","Tareco","Instante","Aragem","Cepa","Largo",
+      "Piedade","Laranja","Remédio","Acervo","Súdito","Aromas","Esfera","Nômade","Garoa","Carona",
+      "Forasteiro","Lampião","Garrafa","Espinha","Aliança","Formiga","Xilogravura","Hormônio","Dorsal","Gergelim",
+      "Fitar","Abrupto","Adepto","Paisagem","Alicerce","Molusco","Vivência","Metade","Tempestade","Devagar",
+      "Volante","Funil","Enigma","Sarau","Ranço","Arsenal","Político","Mogno","Brinco","Carpa",
+      "Toque","Fragata","Vagaroso","Veículo","Alento","Amêndoa","Orquídea","Lapso","Vitral","Sonegar",
+      "Destroço","Beneplácito","Jogada","Curral","Rebanho","Tímido","Cereja","Dívida","Escama","Xerife",
+      "Textura","Faceta","Sergipano","Peralta","Olfato","Abismo","Cupom","Editar","Cidadão","Prazer",
+      "Perfeito","Magnésia","Clorofila","Ciclone","Rótulo","Dolomita","Desdém","Asilo","Cerebral","Fomento",
+      "Edifício","Miopia","Taurino","Tíbia","Falcão","Saxofone","Pavão","Ablução","Vaidade","Corrigir",
+      "Valise","Viga","Camafeu","Empório","Sequela","Curandeiro","Lutador","Jovial","Quimera","Dafne",
+      "Mascote","Vassoura","Poente","Girafa","Umidade","Laminar","Pulsar","Artilha","Busão","Torpor",
+      "Símio","Infante","Nervoso","Urtiga","Cordão","Sarong","Contraste","Abnegado","Formal","Exótico",
+      "Fleuma","Ocidente","Glicose","Aurélio","Recreio","Fraterno","Deserto","Girassol","Omitir","Reptil",
+      "Eficaz","Hortelã","Surreal","Sonata","Cuspe","Comichão","Diadema","Refém","Acumular","Eclodir",
+      "Repartir","Pastoso","Aridez","Lavanda","Mistura","Áurea","Glande","Drible","Calçado","Gaiola",
+      "Hortaliça","Labirinto","Anzóis","Pandemia","Suporte","Lote","Jargão","Sinistro","Covarde","Estima",
+      "Romaria","Erosão","Combate","Moleque","Crença","Amassar","Pulmão","Mísero","Salvado","Gás",
+      "Ataque","Laico","Vinco","Ciente","Propina","Oxigênio","Beleza","Rotina","Utopia","Infecto",
+      "Catedral","Pechincha","Tesouro","Pensar","Intento","Clarão","Montar","Poroso","Tremer","Natureza",
+      "Forquilha","Quiabo","Idioma","Açude","Bronquite","Asseio","Amido","Hino","Régua","Trompa",
+      "Empatar","Minoria","Baralho","Empada","Mestre","Típico","Rancor","Tapete","Prova","Umedecer",
+      "Salgado","Estrondo","Genial","Edital","Jantar","Largura","Costela","Lanterna","Miséria","Sucesso",
+      "Lactante","Pontuar","Ventilado","Sorriso","Abduzir","Listrado","Repouso","Tepidez","Padrão","Despejo",
+      "Perene","Gravura","Bule","Martelo","Sarrar","Impor","Feitoria","Necessário","Rosado","Trote",
+      "Arrombar","Mandato","Rosário","Galeria","Quisar","Indagar","Letargo","Fornalha","Giratório","Debelar",
+      "Ácaro","Viçoso","Soneca","Berro","Picada","Engano","Segredo","Estrato","Histórico","Garganta",
+      "Sempre","Revoga","Letal","Manivela","Sarcástico","Docente","Isento","Lavoura","Sagaz","Íngreme",
+      "Infância","Camiseta","Mamilo","Pulverizar","Interino","Balcão","Frescor","Armário","Mercúrio","Ruído",
+      "Lustre","Dedal","Fóssil","Velhice","Lubrificar","Contrário","Brando","Texto","Orelha","Recalque",
+      "Velocidade","Imune","Acordar","Mórbido","Cinéfilo","Treinador","Buxo","Dúbio","Sinopse","Criancice",
+      "Nitidez","Velar","Pesado","Casulo","Escopo","Macerar","Sarjeta","Emotivo","Cenário","Estirpe",
+      "Frasco","Tecer","Diferir","Mergulho","Conduta","Graxa","Cupido","Zeugma","Muscular","Polido",
+      "Abjeto","Estupendo","Desolado","Bengala","Motriz","Vigiar","Camarote","Inundar","Ode","Arcar",
+      "Quadrar","Engenho","Neurônio","Macarrão","Rasteiro","Ternura","Hongos","Azulejo","Barítono","Rutina",
+      "Feérico","Gótico","Ferver","Lava","Glosar","Berilo","Requinte","Massivo","Esfriar","Caatinga",
+      "Asteroide","Vento","Pânico","Dobradiça","Colosso","Goleiro","Imprensa","Volátil","Pulso","Minério",
+      "Arauto","Cheque","Moradia","Risada","Sonora","Chacota","Mosaico","Florir","Desvario","Vórtice",
+      "Pesar","Esperto","Enxuto","Trevo","Mister","Aceno","Curtir","Morder","Insônia","Atrair",
+      "Caber","Deboche","Celeste","Vacina","Maleta","Aclive","Doente","Expor","Isolado","Hálito",
+      "Redoma","Cupim","Gemido","Ibérico","Letreiro","Digitador","Nítido","Rosnar","Brotar","Encontro",
+      "Moinho","Lanchar","Sonolento","Máximo","Fidalgo","Baldio","Cruel","Infarto","Obeso","Captura",
+      "Infecção","Secura","Entulho","Escasso","Gaulês","Loucura","Palma","Cacto","Pulsão","Remanso",
+      "Persianas","Viúva","Agreste","Estopim","Ovário","Orbe","Mescla","Alvará","Nódulo","Sinfonia",
+      "Apertar","Engrenagem","Eleger","Ferimento","Maciço","Glicemia","Vitamina","Esporo","Rombudo","Arrebol",
+      "Travesso","Mafioso","Ironia","Arrotar","Disparo","Mensagem","Unificar","Isótopo","Descaso","Flamengo",
+      "Lambida","Lousa","Rodeio","Amuleto","Vibrar","Canário","Cotovia","Hidrogênio","Tranquilo","Arquear",
+      "Fatiar","Gestual","Reajuste","Implodir","Apressar","Mumificar","Refletir","Narciso","Tabelar","Mastro",
+      "Englobar","Feixe","Magenta","Clipe","Recinto","Domar","Etílico","Herança","Prognóstico","Retorno",
+      "Lembrar","Marfim","Fragor","Sintoma","Euforia","Jurista","Alforje","Tabuleiro","Édito","Desfecho",
+      "Júpiter","Abaixar","Porção","Remendo","Banheiro","Milhar","Puxado","Agiota","Melodia","Inédito",
+      "Lealdade","Obstar","Corja","Indulto","Estadia","Rotação","Fresta","Domínio","Policiar","Eclético",
+      "Abstrato","Infundir","Reerguer","Conter","Cosiido","Martírio","Evasivo","Roedor","Somar","Embargo",
+      "Alvura","Içar","Bueiro","Escamar","Fazendeiro","Adjetivo","Julgar","Miscelânea","Orgânico","Rabisco",
+      "Termos","Vazia","Sabotar","Alocar","Tampar","Uivar","Mucosa","Tagarelar","Gaguejar","Ventania",
+      "Poesia","Dedicar","Anexar","Gabarito","Cruzar","Esporão","Faixa","Norueguês","Lustroso","Regalado",
+      "Montanha","Delfim","Madrasta","Defunto","Fósforo","Bússola","Faxina","Luxo","Teimoso","Agasalho",
+      "Dirimir","Epiderme","Furo","Cascalho","Poltrona","Editora","Luminoso","Resquício","Soldado","Chorar",
+      "Variação","Cabaré","Despensa","Genitor","Armazém","Assovio","Ambientar","Diagrama","Malte","Horizontes",
+      "Carimbo","Ternário","Urticária","Tentáculo","Inveja","Déspota","Garoupa","Insumo","Sicário","Mutável",
+      "Degrau","Angra","Imbecil","Larva","Sortido","Palhaço","Careta","Pegada","Mandíbula","Suturar",
+      "Arejar","Xilofone","Magnata","Auxiliar","Brigue","Coisa","Encolher","Fechar","Seriado","Amigos",
+      "Indolente","Júnior","Salgar","Mucambo","Artesão","Fragmento","Voltagem","Ressaca","Rasante","Coice",
+      "Madrugar","Gado","Baixista","Aludir","Farinha","Norte","Franco","Tenra","Encontrar","Sisudo",
+      "Urbano","Molhado","Liderar","Eletrodo","Embalo","Abissal","Recrutar","Colidir","Parêntese","Fresco",
+      "Isca","Legível","Nativo","Expiar","Regina","Sucursal","Guarani","Áureo","Barroco","Peruca",
+      "Cochilo","Visceral","Reciclar","Elevador","Forjar","Grilhão","Depositar","Zombar","Ventura","Zodíaco",
+      "Desdenhar","Incluir","Marceneiro","Saltitar","Concreto","Soletrar","Almoxarifado","Hipnose","Crespo","Pairar",
+      "Largar","Sucinto","Sartório","Nostálgico","Jinete","Desvendar","Palpitar","Varanda","Reverter","Treinamento",
+      "Assepsia","Lambuzar","Mercado","Corrimão","Lapidar","Prancha","Agredir","Madorna","Barrar","Ofício",
+      "Agulha","Varal","Urtigar","Diatribe","Cítrico","Apreço","Lhama","Tocante","Bombo","Ladino",
+      "Servir","Notório","Surpresa","Elegância","Entoar","Lanoso","Noturno","Ervilha","Estofado","Delatar",
+      "Perfume","Violino","Processar","Divagar","Libertar","Pincel","Decidir","Fábula","Tecla","Mofo",
+      "Plutão","Morango","Sucumbir","Sururu","Clemente","Javali","Tangível","Tronco","Naufrágio","Estalactite",
+      "Fagulha","Bateria","Conexão","Malogro","Ensacar","Azedar","Sovaco","Alcunha","Azia","Volúvel",
+      "Mandar","Reanexar","Trapezista","Algodão","Propagar","Morrer","Engordar","Visconde","Êxodo","Cismado",
+      "Ímpeto","Bagagem","Espinhal","Medieval","Tanger","Blindar","Vedado","Engenhoca","Tóxico","Agridoce",
+      "Purgar","Nocivo","Impuro","Exumar","Manhoso","Giz","Cântaro","Perigo","Touca","Cetro",
+      "Gotejar","Espessura","Pacificar","Desdenho","Lupino","Gasto","Acréscimo","Ingressar","Taurina","Palustre",
+      "Repassar","Camomila","Montaria","Alho","Endívia","Baldar","Chalé","Cerebelo","Gilson","Sutileza",
+      "Peneira","Ralador","Umbilical","Oxidar","Trilho","Estância","Chalupa","Covil","Vindouro","Arrota",
+      "Estrangular","Figurino","Trocadilho","Gemada","Perfídia","Amalgamar","Felino","Cântico","Rodopio","Alfafa",
+      "Ricota","Muque","Origem","Cateter","Xisto","Narcisismo","Proeza","Moldura","Versar","Dragar",
+      "Proativo","Cacareco","Falésia","Indeciso","Relevo","Enfático","Túnel","Bacana","Adeus","Regressar",
+      "Salivar","Ganância","Oprimir","Goteira","Baiuca","Voar","Blasé","Coxa","Mergulhar","Cárie",
+      "Bombom","Engrenar","Menisco","Causa","Recanto","Doutrina","Ruflar","Determinar","Repetir","Encarar",
+      "Fama","Olhar","Célere","Cantiga","Esvaziar","Camuflar","Ninho","Destroçar","Sorver","Leite",
+      "Curvar","Olfativo","Xarope","Limar","Pólvora","Bifocal","Rugoso","Gelado","Setor","Bursite",
+      "Levitar","Explícito","Submeter","Congelar","Munir","Tijolo","Pastel","Pomar","Balizar","Comungar",
+      "Mimado","Solidão","Anular","Versátil","Dançar","Leveza","Vassalo","Comitiva","Carpir","Tédio",
+      "Incauto","Filtrar","Periferia","Monarca","Rebite","Incidir","Retalho","Gangorra","Artigo","Datilografia",
+      "Feudal","Hidróxido","Ondular","Vislumbre","Funesto","Quermesse","Correio","Cenóbio","Ensurdecer","Brecar",
+      "Sintaxe","Tempora","Aviário","Primata","Arrumar","Redigir","Globular","Fungar","Vacilar","Zombaria",
+      "Enxurrada","Migalha","Hortênsia","Capuz","Escuridão","Pressa","Tablado","Grelha","Tísica","Almofariz",
+      "Tangente","Suborno","Rogar","Berílio","Percurso","Mugir","Sufocar","Fixador","Onírico","Ancião",
+      "Retrato","Mote","Surgir","Ziguezague","Essência","Teor","Latejar","Modal","Farol","Alheio",
+      "Frutífero","Abstruso","Errata","Congênito","Elementar","Palpável","Estrume","Galego","Arlequim","Jasmim",
+      "Genuíno","Moletom","Riscar","Emoldurar","Mandado","Bovarismo","Silvar","Coar","Delgado","Flecha",
+      "Forrar","Abadessa","Ultrapassar","Marquise","Obelisco","Feitor","Derrubar","Fiar","Imprimir","Inerente",
+      "Segregar","Canção","Abono","Litorâneo","Rastilho","Cepilho","Paisano","Medonha","Gamo","Soprar",
+      "Empalhar","Moroso","Pinote","Quebrar","Virgem","Axiomático","Petisco","Desfrute","Carismático","Felpudo",
+      "Coagir","Estirar","Solo","Amanita","Cangalha","Vespa","Capenga","Desatino","Fenício","Lâmina",
+      "Fragmentar","Sumário","Emérito","Teste","Roxo","Tática","Abdução","Oclusão","Zonzeira","Banguela",
+      "Varíola","Correlação","Mamífero","Voltar","Recuar","Efusivo","Cabeçalho","Bárbaro","Timoneiro","Onerar",
+      "Fugir","Bonança","Elástico","Tolerar","Tônico","Hebraico","Medula","Dadivoso","Trovador","Autorizar",
+      "Pupila","Enfiar","Rodízio","Alquimia","Pangaré","Emissão","Entalhe","Ofender","Tinido","Bravura",
+      "Emudecer","Rebolar","Valquíria","Salsicha","Eslavo","Veleiro","Acento","Felicidade","Manada","Alforria",
+      "Cachimbo","Eremita","Jovem","Punhal","Zigoto","Beletrismo","Queijo","Revoada","Mancada","Descascar",
+      "Flutuar","Docilidade","Suspiro","Adentrar","Ordem","Cipreste","Erguido","Fiapo","Opaco","Inquirir",
+      "Melancolia","Obedecer","Itens","Bigorna","Caridade","Cedilha","Parcela","Comédia","Legenda","Sonolência",
+      "Mundano","Astúcia","Glauco","Vértice","Humano","Patente","Estômago","Inebriar","Bacalhau","Tamanco",
+      "Rochedo","Calendário","Ultraje","Valsa","Moldar","Abduzido","Cuidar","Jararaca","Cardume","Falsa",
+      "Episódio","Oceano","Videira","Metáfora","Peneirar","Alfaiate","Beliscar","Orla","Pandear","Escarpado",
+      "Lupanar","Agudo","Eficiente","Frenesi","Parafina","Inserir","Bruxaria","Fração","Lamparina","Tremor",
+      "Melado","Contrair","Contador","Chocalho","Leitão","Musgo","Pincelar","Cúpula","Aleijado","Guichê",
+      "Liberdade","Medalha","Salpicar","Turbina","Mixórdia","Iguaria","Bocado","Locutor","Arbusto","Galáxia",
+      "Esbarro","Confiar","Reagrupar","Colateral","Espantalho","Guilhotina","Infringir","Dissipar","Elucidar","Iglu",
+      "Meticuloso","Aquecer","Corisco","Vagabundo","Migrar","Válvula","Coletor","Excêntrico","Arquivo","Inclusão",
+      "Varredura","Chiado","Humilde","Sincero","Tilde","Perpetuar","Agressivo","Litoral","Protestar","Talher",
+      "Inócuo","Fadiga","Fraudar","Cobiçar","Ausente","Decifrar","Duvidar","Encosto","Farinhada","Oriundo",
+      "Soldar","Cumprir","Esteira","Hostil","Argênteo","Pelagem","Vigor","Miscível","Bendizer","Reiterar",
+      "Quadril","Esteio","Galeão","Citadino","Esloveno","Místico","Viola","Entrever","Pulular","Demanda",
+      "Cômputo","Lilás","Masmorra","Pitoresco","Vultoso","Quarks","Ofegante","Frenezi","Lesma","Grunhir",
+      "Surtir","Poluente","Marcador","Ensino","Laringe","Filamento","Dúvida","Espionar","Sapateiro","Vinagre",
+      "Quarenta","Restinga","Eufêmia","Índole","Vulgar","Fiorde","Bunker","Ventosa","Açoitar","Centelha",
+      "Pichar","Golpear","Conceder","Jurado","Hemorragia","Adverso","Blindagem","Esgrimir","Geada","Retinir",
+      "Calombo","Origami","Vergonha","Organza","Atônito","Reentrância","Bulbo","Conduzir","Empenho","Sorvete",
+      "Drenar","Serrilha","Presságio","Despencar","Conflito","Malabar","Exaurir","Irromper","Inquieto","Lanchonete",
+      "Ralé","Chumaço","Indenizar","Tolerância","Espontâneo","Refrigério","Marmita","Petulante","Legista","Tenacidade",
+      "Bioma","Cirrose","Deflagrar","Empilhar","Cortesia","Grogue","Totem","Remenda","Alce","Fuinha",
+      "Calcário","Ousadia","Exemplo","Risoto","Moitar","Veloz","Confins","Pantanal","Hemisfério","Dentista",
+      "Fissura","Tortura","Pinhão","Tímpano","Surfar","Burlar","Ampulheta","Matizar","Bloquear","Riolar",
+      "Guaraná","Decantar","Buldogue","Salitre","Colher","Arrebite","Massagem","Vertebrado","Fariseu","Locomover",
+      "Reboliço","Farináceo","Subsidiar","Paisagismo","Sedento","Validação","Encaminhar","Jocosidade","Alcorão","Tatuagem",
+      "Manteiga","Aliado","Amiudar","Exaurido","Fragilizar","Rocambole","Gargalhar","Multa","Ariscar","Libélula",
+      "Odor","Pampas","Tenor","Suplicar","Roseira","Bacaba","Abarrotar","Catapora","Enseada","Lenitivo",
+      "Brincar","Zíper","Levante","Epíteto","Inóspito","Ranso","Saturno","Vaqueiro","Assíduo","Esponja",
+      "Arrozal","Musculoso","Fruta","Cismático","Carreta","Hidratado","Ladeira","Química","Derrota","Mirtilo",
+      "Ficção","Pêssego","Balé","Teologia","Engenheiro","Cabresto","Periquito","Emplastro","Biruta","Proteína",
+      "Decorar","Metrificar","Zulu","Maratona","Entortar","Galpão","Elenco","Dolente","Oitavo","Filantropo",
+      "Bugio","Mestisso","Cupinzeiro","Pinoia","Harmonia","Arrebentar","Tantear","Redondel","Diálogo","Zelar",
+      "Irônico","Crescente","Avícola","Fusão","Sigilo","Untuoso","Bucólico","Cangote","Lacuna","Cairia",
+      "Solidificar","Fraqueza","Levantamento","Selado","Palidez","Templo","Mediano","Ocasião","Torpedo","Ornato",
+      "Atalho","Consciência","Zumbido","Menear","Cremoso","Suculento","Desfazer","Tiquetaque","Guri","Churrasco",
+      "Mirrado","Rodopiar","Babuíno","Inodoro","Leguminoso","Sagui","Sedoso","Mandolate","Ebulição","Psicose",
+      "Tesoura","Bufar","Telefone","Fugidio","Adereço","Simetria","Combustão","Tarrafa","Endemia","Gincana",
+      "Novelo","Substância","Vertigem","Saudável","Xerocópia","Adversário","Janela","Avaliar","Pílula","Covardia",
+      "Guisado","Encerar","Zumbir","Estampa","Escadaria","Mirante","Afagar","Engraçado","Inércia","Tórax",
+      "Caverna","Inflar","Romper","Explicar","Portal","Laçar","Tilintar","Régio","Costurar","Bater",
+      "Exalçar","Pinheiro","Aldeia","Minúsculo","Veemente","Quântico","Debandar","Despejar","Extrair","Móvel",
+      "Baliza","Gorar","Cavalar","Roletar","Invicto","Frustrar","Vigília","Estapear","Enroscar","Bens",
+      "Observador","Ladainha","Piaçaba","Dorso","Insuflar","Rancar","Idôneo","Lugarejo","Cimeira","Escorregar",
+      "Heresia","Disfarçar","Telegrama","Conclave","Bacamarte","Elíptico","Furtivo","Brusco","Tábua","Intensidade",
+      "Pulsação","Envolto","Severidade","Laxa","Presença","Cinzel","Rapina","Pardal","Rachadura","Infame",
+      "Tapume","Reprimir","Genoma","Erigir","Digerir","Omissão","Varar","Teimar","Bandido","Passante",
+      "Revirar","Inflamar","Barulho","Dormente","Rotativo","Mocidade","Exceder","Fender","Rosquinha","Geleia",
+      "Encarecer","Alvenaria","Elétrica","Sanguíneo","Propício","Turquesa","Laquê","Divisor","Gabinete","Tintureiro",
+      "Macieira","Soprano","Esguio","Reger","Caldeira","Voraz","Impresso","Bailar","Psíquico","Lucidez",
+      "Galopar","Fosco","Mexido","Mirar","Cais","Valsar","Negaça","Mergulhador","Ovino","Polidez",
+      "Estribo","Ludibriar","Sarcófago","Demolir","Pungir","Tesla","Guincho","Forca","Tagarela","Torrada",
+      "Vacilante","Ressonar","Estranha","Madurar","Bogaria","Balanço","Sintonia","Imersão","Chafariz","Sólido",
+      "Meandro","Grandioso","Rebatizar","Esmero","Cordel","Xingar","Auxílio","Informar","Encher","Gradual",
+      "Trigêmeo","Sapucaia","Molhar","Unção","Divino","Audaz","Zanzar","Garfo","Central","Bemol",
+      "Executor","Togado","Emprestar","Folhagem","Rodela","Metro","Pretexto","Hiato","Côncavo","Caramelo",
+      "Demasia","Chacina","Aresta","Expirar","Guarde","Meteoro","Tornado","Soturno","Bactéria","Indiferença",
+      "Peta","Migração","Gaiato","Alecrim","Pedinte"
+    ];
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // Banco básico pros outros idiomas (só como exemplo)
     const palavrasBanco = {
-      "PT-PT": ["cão", "arc-íris", "vermelho", "futebol", "jantar"],
-      "EN-US": ["dog", "rainbow", "red", "soccer", "dinner"],
-      "ES": ["perro", "arcoiris", "rojo", "futbol", "cena"]
+      "PT-PT": ["cão","arc-íris","vermelho","futebol","jantar"],
+      "EN-US": ["dog","rainbow","red","soccer","dinner"],
+      "ES":    ["perro","arcoiris","rojo","futbol","cena"]
     };
 
     const colorPalette = [
@@ -773,7 +975,7 @@
     btnIniciar.addEventListener("click", iniciarJogo);
 
     function iniciarJogo(){
-      if (jogadores.length <4 || (jogadores.length %2 !== 0)) {
+      if (jogadores.length < 4 || (jogadores.length % 2 !== 0)) {
         alert('É necessário ao menos 4 jogadores (número par).');
         return;
       }
@@ -795,12 +997,18 @@
       let idioma = getSelectedIdioma();
       let listaPalavrasBrutas;
       if (idioma === 'PT-BR'){
+        // Agora, bigPTBR tem 2000 palavras de verdade
         listaPalavrasBrutas = bigPTBR;
       } else {
+        // Exemplo simples pros outros idiomas
         listaPalavrasBrutas = Array.from(new Set(palavrasBanco[idioma] || []));
       }
       shuffleArray(listaPalavrasBrutas);
-      palavrasRodada = listaPalavrasBrutas.slice(0,5);
+
+      // Por padrão, o jogo pega só 5 palavras. Se quiser
+      // usar o "baralho" inteiro, troque 5 -> 2000 ou outro valor
+      // ou remova completamente o slice.
+      palavrasRodada = listaPalavrasBrutas.slice(0, 5);
 
       indicePalavra = 0;
       duplaAtual = 0;
@@ -1102,3 +1310,4 @@
   </script>
 </body>
 </html>
+
