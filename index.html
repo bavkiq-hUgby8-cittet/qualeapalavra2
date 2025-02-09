@@ -3,29 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Qual é a Palavra? - Câmera e Confetes! (Webcam + Animations) [Updated]</title>
-  <!-- Tailwind CSS via CDN para estilo -->
+  <title>Qual é a Palavra? - Câmera e Confetes!</title>
+  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Pequeno script de confetes -->
+  <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
-    /* Principais testes/solicitações:
-       1) Mínimo 4 players => se <4, ALERT.
-       2) Foto via webcam/arquivo => exibida.
-       3) Confetes no final.
-       4) Timer com relógio animado.
-       5) Eye closed icon => toggled.
-       6) primeiratentativa => single.
-       7) Simples animação "Iniciar Jogo" => fade out config => fade in main.
-       8) tempoMaximoValue => single.
-       9) btnEncerrar => single.
-       10) Excluir jogador depois de adicionado (na config, mas user said "tela principal"?
-           Vamos supor que o user queira remover ainda na config, pois no main não faz muito sentido.
-       11) Reescrever as regras de maneira mais clara.
-       12) "Refazer" o abrir camera => tentamos forçar facingMode.
-       13) "Dupla Atual" em destaque: custom style.
-       14) pular palavra => mover do lado do timer.
-       15) centralizar timer no meio da tela.
+    /* Fixed to ensure no duplicate let duplas.
+       We have only a single global let duplas.
     */
 
     .hover-scale:hover {
@@ -34,16 +19,36 @@
       cursor: pointer;
     }
 
-    /* Timer color transition (green -> red) handled in script. */
+    /* LED style for the announcements */
+    .led-text {
+      font-family: monospace;
+      letter-spacing: 2px;
+      background: black;
+      color: lime;
+      padding: 4px 8px;
+      border-radius: 4px;
+      box-shadow: 0 0 5px rgba(0,255,0,0.5);
+    }
 
-    /* Eye closed icon (inline SVG) */
+    /* Timer bigger than 'Iniciar' => let's push timer container bigger. */
+    #tempoContainer {
+      transform: scale(1.2);
+    }
+
+    /* Button pass icon => we can embed a small icon. */
+    #btnPular {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Eye icon etc. same as before. */
     #eyeIcon svg {
       width: 32px;
       height: 32px;
       fill: currentColor;
     }
 
-    /* Clock pointer spinning animation */
     .spin {
       animation: spin 1s linear infinite;
       transform-origin: center center;
@@ -57,7 +62,6 @@
       }
     }
 
-    /* Fade animations for screens */
     .fade-out {
       animation: fadeOut 1s forwards;
     }
@@ -79,7 +83,6 @@
       }
     }
 
-    /* Destaque para a "dupla atual" panel */
     #duplaAtualPanel {
       background: linear-gradient(to right, #f0f9ff, #e0f2fe);
       border: 2px solid #93c5fd;
@@ -94,12 +97,10 @@
   </style>
 </head>
 <body class="w-screen min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-2 md:p-6 overflow-x-hidden">
-
 <div id="app" class="flex flex-col justify-center items-center w-full max-w-[1920px] mx-auto relative">
-  <!-- Canvas Confetti -->
   <canvas id="confettiCanvas" class="pointer-events-none fixed top-0 left-0 w-full h-full z-50"></canvas>
 
-  <!-- MODAL DE REGRAS DO JOGO -->
+  <!-- MODAL REGRAS -->
   <div id="modalRegras" class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 items-center justify-center hidden z-40">
     <div class="bg-white p-6 rounded-xl shadow-2xl max-w-lg mx-auto">
       <h2 class="text-2xl font-bold mb-4">Regras do Jogo</h2>
@@ -108,9 +109,8 @@
         2) A cada palavra, a dupla da vez inicia tentando acertar: se acertar de primeira, ganha 2 pontos.<br/>
         3) Se errar, as outras duplas (ou ela mesma, em nova vez) só ganham 1 ponto se acertarem.<br/>
         4) Se pular ou o tempo acabar, passa para a próxima dupla, podendo manter a mesma palavra ou avançar, dependendo do caso.<br/>
-        5) Ao final do banco de palavras, a dupla com maior pontuação vence. Em caso de empate, ambos vencem!<br/>
+        5) Ao final do banco de palavras, a dupla com maior pontuação vence.<br/>
       </p>
-      <!-- Botão de fala -->
       <button id="btnFalarRegras" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow-lg mb-4">
         Falar Regras em Voz Alta
       </button>
@@ -118,7 +118,7 @@
     </div>
   </div>
 
-  <!-- TELA DE CONFIGURAÇÃO INICIAL -->
+  <!-- TELA CONFIG -->
   <div id="config-screen" class="w-full max-w-4xl p-4 md:p-6 shadow-2xl bg-gradient-to-r from-white to-gray-50 rounded-2xl mb-4">
     <h1 class="text-3xl font-extrabold mb-6 text-center">Configuração Inicial</h1>
 
@@ -144,7 +144,6 @@
           </label>
         </div>
       </div>
-      <!-- Botão ver regras -->
       <button id="btnRegras" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded font-bold shadow-lg">
         Regras?
       </button>
@@ -159,7 +158,6 @@
       <label class="block mb-1 font-semibold">Jogadores:</label>
       <div class="flex gap-2 mb-2 flex-wrap">
         <input type="text" id="nomeJogador" class="border border-gray-300 p-3 rounded w-full md:w-1/2" placeholder="Nome do Jogador"/>
-        <!-- Input de foto c/ capture p/ mobile -->
         <input type="file" id="fotoJogador" accept="image/*" capture="environment" class="border border-gray-300 p-3 rounded w-full md:w-1/2 bg-white"/>
       </div>
       <div class="flex gap-2 mb-4">
@@ -174,7 +172,7 @@
         <button id="btnAdicionarJogador" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded font-bold shadow-lg">Adicionar</button>
       </div>
       <div id="listaJogadores" class="bg-blue-50 border border-blue-200 p-3 rounded h-32 overflow-y-auto mt-2">
-        <!-- Lista de jogadores adicionados -->
+        <!-- Jogadores -->
       </div>
     </div>
 
@@ -191,21 +189,25 @@
     </button>
   </div>
 
-  <!-- TELA PRINCIPAL DE JOGO -->
+  <!-- MAIN -->
   <div id="main-screen" class="w-full max-w-5xl p-2 md:p-4 hidden">
     <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
       <button id="btnEncerrar" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold shadow">Encerrar Partida</button>
       <div id="boxPontuacao" class="bg-gradient-to-r from-blue-50 to-white p-4 rounded-xl shadow-md text-sm w-full md:w-96">
         <h2 class="text-lg font-bold mb-3 text-center">Pontuação</h2>
         <div id="scoreContainer" class="flex flex-col gap-2">
-          <!-- Preenchido dinamicamente -->
+          <!-- Scores -->
         </div>
       </div>
     </div>
 
-    <!-- Painel Dupla Atual com destaque -->
+    <!-- Dupla Atual -->
     <div id="duplaAtualPanel" class="mb-4">
-      <h2 class="text-xl font-semibold mb-3 text-center">Dupla Atual</h2>
+      <div class="mb-3 flex flex-col gap-1 items-center">
+        <!-- LED style -->
+        <span id="doadorLed" class="led-text"></span>
+        <span id="adivLed" class="led-text"></span>
+      </div>
       <div class="flex items-center gap-2 mb-2">
         <img id="doadorFoto" src="" alt="Foto do Doador" class="w-12 h-12 object-cover rounded-full hidden"/>
         <p class="text-lg font-bold text-blue-700">JOGADOR DE DICA: <span id="doador" class="bg-white rounded px-2 py-1"></span></p>
@@ -230,12 +232,11 @@
       </div>
     </div>
 
-    <!-- Timer e Pular ao centro -->
-    <div class="mb-4 flex flex-col items-center justify-center gap-4">
-      <!-- Timer centralizado -->
-      <div class="text-xl font-bold flex gap-2 items-center">
+    <!-- Timer e Pular -->
+    <div class="mb-4 flex flex-col items-center justify-center gap-4" id="tempoContainer">
+      <div class="text-2xl font-bold flex gap-2 items-center">
         <span>Tempo Restante:</span>
-        <span id="tempoRestante" class="text-green-600 font-extrabold text-2xl">60</span> <span>seg</span>
+        <span id="tempoRestante" class="text-green-600 font-extrabold text-3xl">60</span> <span>seg</span>
       </div>
       <div class="flex gap-4 items-center">
         <button id="btnIniciarTempo"
@@ -251,7 +252,10 @@
             <line id="clockHand" x1="32" y1="32" x2="32" y2="12" stroke="#000" stroke-width="3" stroke-linecap="round"/>
           </svg>
         </button>
-        <button id="btnPular" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold shadow">Pular Palavra</button>
+        <button id="btnPular" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold shadow flex items-center gap-1">
+          <img src="https://cdn-icons-png.flaticon.com/512/54/54599.png" width="24" height="24" alt="passar"/>
+          <span>Pular</span>
+        </button>
       </div>
     </div>
 
@@ -280,7 +284,7 @@
     </div>
   </div>
 
-  <!-- TELA FINAL DE PARTIDA -->
+  <!-- TELA FINAL -->
   <div id="end-screen" class="w-full max-w-4xl p-6 shadow-2xl bg-gradient-to-r from-white to-gray-50 rounded-2xl text-center mt-8 hidden relative">
     <h1 class="text-2xl font-bold mb-4">Partida Encerrada</h1>
     <p id="resultado" class="text-xl mb-2"></p>
@@ -317,77 +321,72 @@
     })();
   }
 
-  const colorPalette = [
-    'bg-red-200 text-red-800',
-    'bg-green-200 text-green-800',
-    'bg-yellow-200 text-yellow-800',
-    'bg-purple-200 text-purple-800',
-    'bg-pink-200 text-pink-800',
-    'bg-orange-200 text-orange-800',
-    'bg-blue-200 text-blue-800',
-    'bg-teal-200 text-teal-800'
-  ];
+  // Provide shuffle.
+  function shuffleArray(array){
+    for(let i=array.length-1; i>0; i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [array[i],array[j]]=[array[j],array[i]];
+    }
+    return array;
+  }
 
-  const modalRegras = document.getElementById('modalRegras');
-  const btnRegras = document.getElementById('btnRegras');
-  const btnFecharModal = document.getElementById('btnFecharModal');
-  const btnFalarRegras = document.getElementById('btnFalarRegras');
+  const btnRegras=document.getElementById('btnRegras');
+  const btnFecharModal=document.getElementById('btnFecharModal');
+  const btnFalarRegras=document.getElementById('btnFalarRegras');
+  const modalRegras=document.getElementById('modalRegras');
 
-  const configScreen = document.getElementById('config-screen');
-  const mainScreen = document.getElementById('main-screen');
-  const endScreen = document.getElementById('end-screen');
+  const configScreen=document.getElementById('config-screen');
+  const mainScreen=document.getElementById('main-screen');
+  const endScreen=document.getElementById('end-screen');
 
-  const inputTempoMaximo = document.getElementById('tempoMaximo');
-  const inputNomeJogador = document.getElementById('nomeJogador');
-  const inputFotoJogador = document.getElementById('fotoJogador');
-  const listaJogadoresEl = document.getElementById('listaJogadores');
-  const modoDuplasSelect = document.getElementById('modoDuplas');
+  const inputTempoMaximo=document.getElementById('tempoMaximo');
+  const inputNomeJogador=document.getElementById('nomeJogador');
+  const inputFotoJogador=document.getElementById('fotoJogador');
+  const listaJogadoresEl=document.getElementById('listaJogadores');
+  const modoDuplasSelect=document.getElementById('modoDuplas');
 
-  const btnAdicionarJogador = document.getElementById('btnAdicionarJogador');
-  const btnIniciar = document.getElementById('btnIniciar');
-  const btnEncerrar = document.getElementById('btnEncerrar');
-  const btnIniciarTempo = document.getElementById('btnIniciarTempo');
-  const btnEnviarDica = document.getElementById('btnEnviarDica');
-  const btnEnviarChute = document.getElementById('btnEnviarChute');
-  const btnPular = document.getElementById('btnPular');
-  const btnReiniciar = document.getElementById('btnReiniciar');
-  const btnAbrirCamera = document.getElementById('btnAbrirCamera');
-  const btnCapturarFoto = document.getElementById('btnCapturarFoto');
+  const btnAdicionarJogador=document.getElementById('btnAdicionarJogador');
+  const btnIniciar=document.getElementById('btnIniciar');
+  const btnEncerrar=document.getElementById('btnEncerrar');
+  const btnIniciarTempo=document.getElementById('btnIniciarTempo');
+  const btnEnviarDica=document.getElementById('btnEnviarDica');
+  const btnEnviarChute=document.getElementById('btnEnviarChute');
+  const btnPular=document.getElementById('btnPular');
+  const btnReiniciar=document.getElementById('btnReiniciar');
+  const btnAbrirCamera=document.getElementById('btnAbrirCamera');
+  const btnCapturarFoto=document.getElementById('btnCapturarFoto');
 
-  const scoreContainer = document.getElementById('scoreContainer');
-  const doadorEl = document.getElementById('doador');
-  const doadorFoto = document.getElementById('doadorFoto');
-  const adivinhadorEl = document.getElementById('adivinhador');
-  const adivinhadorFoto = document.getElementById('adivinhadorFoto');
-  const palavraSecretaEl = document.getElementById('palavraSecreta');
-  const conteudoPalavraEl = document.getElementById('conteudoPalavra');
-  const tempoRestanteEl = document.getElementById('tempoRestante');
-  const campoDica = document.getElementById('campoDica');
-  const campoChute = document.getElementById('campoChute');
-  const historicoAcoes = document.getElementById('historicoAcoes');
-  const endResultado = document.getElementById('resultado');
-  const endPontuacaoFinal = document.getElementById('pontuacaoFinal');
-  const togglePalavraCheckbox = document.getElementById('togglePalavra');
-  const eyeIcon = document.getElementById('eyeIcon');
+  const scoreContainer=document.getElementById('scoreContainer');
+  const doadorEl=document.getElementById('doador');
+  const doadorFoto=document.getElementById('doadorFoto');
+  const adivinhadorEl=document.getElementById('adivinhador');
+  const adivinhadorFoto=document.getElementById('adivinhadorFoto');
+  const palavraSecretaEl=document.getElementById('palavraSecreta');
+  const conteudoPalavraEl=document.getElementById('conteudoPalavra');
+  const tempoRestanteEl=document.getElementById('tempoRestante');
+  const campoDica=document.getElementById('campoDica');
+  const campoChute=document.getElementById('campoChute');
+  const historicoAcoes=document.getElementById('historicoAcoes');
+  const endResultado=document.getElementById('resultado');
+  const endPontuacaoFinal=document.getElementById('pontuacaoFinal');
+  const togglePalavraCheckbox=document.getElementById('togglePalavra');
+  const eyeIcon=document.getElementById('eyeIcon');
 
-  const clockHand = document.getElementById('clockHand');
+  const clockHand=document.getElementById('clockHand');
 
-  // Excluir jogador: usaremos um icone de lixeira, e iremos exibir do lado do nome no config.
-  // Lógica: jogador clica, remove do array e re-render.
+  const doadorLed=document.getElementById('doadorLed');
+  const adivLed=document.getElementById('adivLed');
 
-  // Webcam elements
-  const videoCamera = document.getElementById('videoCamera');
-  const canvasFoto = document.getElementById('canvasFoto');
-  let cameraStream = null;
+  // camera
+  let cameraStream=null;
+  let tempFotoDataUrl='';
 
-  // We'll store the last captured DataURL from webcam
-  let tempFotoDataUrl = '';
-
-  let tempoMaximoValue = 60;
-  let tempoRestante = 60;
-  let timerInterval = null;
+  let tempoMaximoValue=60;
+  let tempoRestante=60;
+  let timerInterval=null;
 
   let jogadores=[];
+  /* Only one global duplas. We'll remove any second let inside functions. */
   let duplas=[];
   let scores=[];
   let palavrasRodada=[];
@@ -398,49 +397,47 @@
   let historico=[];
 
   let palavrasBanco={
-    'PT-BR': [
-      'cachorro','arco-iris','vermelho','futebol','jantar'
-    ],
+    'PT-BR': ['cachorro','arco-iris','vermelho','futebol','jantar'],
     'PT-PT': ['cão','arc-íris','vermelho','futebol','jantar'],
     'EN-US': ['dog','rainbow','red','soccer','dinner'],
     'ES': ['perro','arcoiris','rojo','futbol','cena']
   };
 
-  btnAbrirCamera.addEventListener('click', async () => {
-    try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-      videoCamera.srcObject = cameraStream;
+  btnAbrirCamera.addEventListener('click', async ()=>{
+    try{
+      cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+      videoCamera.srcObject=cameraStream;
       videoCamera.classList.remove('hidden');
       btnCapturarFoto.classList.remove('hidden');
       canvasFoto.classList.add('hidden');
-    } catch (err) {
-      alert('Não foi possível acessar a câmera: ' + err);
+    }catch(err){
+      alert('Não foi possível acessar a câmera: '+err);
     }
   });
 
-  btnCapturarFoto.addEventListener('click', () => {
-    if (!cameraStream) return;
+  btnCapturarFoto.addEventListener('click', ()=>{
+    if(!cameraStream)return;
     canvasFoto.classList.remove('hidden');
-    canvasFoto.width = videoCamera.videoWidth;
-    canvasFoto.height = videoCamera.videoHeight;
-    const ctx = canvasFoto.getContext('2d');
-    ctx.drawImage(videoCamera, 0, 0, canvasFoto.width, canvasFoto.height);
+    canvasFoto.width=videoCamera.videoWidth;
+    canvasFoto.height=videoCamera.videoHeight;
+    const ctx=canvasFoto.getContext('2d');
+    ctx.drawImage(videoCamera,0,0,canvasFoto.width,canvasFoto.height);
 
-    let dataUrl = canvasFoto.toDataURL('image/png');
+    let dataUrl=canvasFoto.toDataURL('image/png');
 
     videoCamera.classList.add('hidden');
     btnCapturarFoto.classList.add('hidden');
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-      cameraStream = null;
+    if(cameraStream){
+      cameraStream.getTracks().forEach(track=>track.stop());
+      cameraStream=null;
     }
 
-    tempFotoDataUrl = dataUrl;
+    tempFotoDataUrl=dataUrl;
   });
 
   function getSelectedIdioma(){
-    const checked = document.querySelector('input[name=idiomaRadio]:checked');
-    return checked ? checked.value : 'PT-BR';
+    const checked=document.querySelector('input[name=idiomaRadio]:checked');
+    return checked?checked.value:'PT-BR';
   }
 
   function exibirTelaConfig(){
@@ -455,7 +452,6 @@
   function exibirTelaPrincipal(){
     configScreen.classList.remove('fade-in');
     configScreen.classList.add('fade-out');
-
     setTimeout(()=>{
       configScreen.classList.add('hidden');
       mainScreen.classList.remove('hidden');
@@ -473,17 +469,17 @@
   btnAdicionarJogador.addEventListener('click', adicionarJogador);
 
   function adicionarJogador(){
-    let nomeDigitado = inputNomeJogador.value.trim() || `Convidado #${jogadores.length+1}`;
-    let colorClass = colorPalette[jogadores.length % colorPalette.length];
+    let nomeDigitado=inputNomeJogador.value.trim() || `Convidado #${jogadores.length+1}`;
+    let colorClass=colorPalette[jogadores.length%colorPalette.length];
 
     let fotoDataUrl='';
-    const file = fotoJogador.files[0];
+    const file=fotoJogador.files[0];
     if(tempFotoDataUrl){
-      fotoDataUrl = tempFotoDataUrl;
+      fotoDataUrl=tempFotoDataUrl;
       tempFotoDataUrl='';
-    } else if(file){
-      const reader = new FileReader();
-      reader.onload = (e)=>{
+    }else if(file){
+      const reader=new FileReader();
+      reader.onload=(e)=>{
         fotoDataUrl=e.target.result;
         pushJogador(nomeDigitado,colorClass,fotoDataUrl);
       };
@@ -494,21 +490,19 @@
     pushJogador(nomeDigitado,colorClass,fotoDataUrl);
   }
 
-  function pushJogador(name, colorClass, fotoDataUrl){
-    const newPlayer = {
+  function pushJogador(name,colorClass,fotoDataUrl){
+    const newPlayer={
       name,
-      color: colorClass,
-      photo: fotoDataUrl,
+      color:colorClass,
+      photo:fotoDataUrl,
     };
     jogadores.push(newPlayer);
-
     inputNomeJogador.value='';
     fotoJogador.value='';
     renderJogadores();
   }
 
   function removerJogador(idx){
-    // remove do array
     jogadores.splice(idx,1);
     renderJogadores();
   }
@@ -518,10 +512,8 @@
     jogadores.forEach((player,idx)=>{
       const div=document.createElement('div');
       div.className=`${player.color} p-2 uppercase rounded mb-1 shadow-sm font-bold flex items-center gap-2 justify-between`;
-
-      const leftPart = document.createElement('div');
-      leftPart.className = 'flex items-center gap-2';
-
+      const leftPart=document.createElement('div');
+      leftPart.className='flex items-center gap-2';
       if(player.photo){
         const imgEl=document.createElement('img');
         imgEl.src=player.photo;
@@ -529,44 +521,41 @@
         imgEl.className='w-8 h-8 object-cover rounded-full';
         leftPart.appendChild(imgEl);
       }
-
       const spanNome=document.createElement('span');
       spanNome.textContent=player.name;
       leftPart.appendChild(spanNome);
-
       div.appendChild(leftPart);
 
-      // Botão para excluir
       const btnExcluir=document.createElement('button');
       btnExcluir.className='bg-red-400 hover:bg-red-500 text-white px-2 py-1 rounded font-bold';
       btnExcluir.textContent='Excluir';
-      btnExcluir.addEventListener('click', ()=>{
+      btnExcluir.addEventListener('click',()=>{
         removerJogador(idx);
       });
       div.appendChild(btnExcluir);
-
       listaJogadoresEl.appendChild(div);
     });
   }
 
   btnIniciar.addEventListener('click', iniciarJogo);
 
+  // Only one global let duplas => no second let here.
+
   function iniciarJogo(){
     if(jogadores.length<4 || (jogadores.length%2!==0)){
       alert('É necessário ao menos 4 jogadores (número par).');
       return;
     }
+    // reassign duplas
     duplas=[];
     const modo=modoDuplasSelect.value;
     let arrCopia=[...jogadores];
     if(modo!=='manual'){
       shuffleArray(arrCopia);
     }
-
     for(let i=0;i<arrCopia.length;i+=2){
       duplas.push([arrCopia[i],arrCopia[i+1]]);
     }
-
     scores=new Array(duplas.length).fill(0);
 
     const idioma=getSelectedIdioma();
@@ -578,8 +567,8 @@
     duplaAtual=0;
     primeiraTentativa=true;
 
-    tempoMaximoValue = parseInt(inputTempoMaximo.value) || 60;
-    tempoRestante = tempoMaximoValue;
+    tempoMaximoValue=parseInt(inputTempoMaximo.value)||60;
+    tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
     tempoRestanteEl.classList.remove('text-red-600');
     tempoRestanteEl.classList.add('text-green-600');
@@ -596,11 +585,146 @@
     exibirTelaPrincipal();
   }
 
+  const endResultado=document.getElementById('resultado');
+  const endPontuacaoFinal=document.getElementById('pontuacaoFinal');
+
   btnEncerrar.addEventListener('click', encerrarPartida);
+  function encerrarPartida(){
+    exibirTelaFinal();
+    pararTimer();
+    let maiorPontuacao=Math.max(...scores);
+    let indicesMax=scores.map((val,idx)=> val===maiorPontuacao ? idx : -1).filter(i=>i>=0);
+    if(indicesMax.length>1){
+      endResultado.textContent='Temos um Empate!';
+    } else{
+      const campeaoArr=duplas[indicesMax[0]];
+      const campeao=campeaoArr[0].name+' & '+campeaoArr[1].name;
+      endResultado.textContent='Dupla Vencedora: '+campeao;
+    }
+    endPontuacaoFinal.innerHTML='<h2 class="font-semibold">Pontuação Final</h2>';
+    duplas.forEach((dupla,idx)=>{
+      let nomes=dupla[0].name.toUpperCase()+' & '+dupla[1].name.toUpperCase();
+      const div=document.createElement('div');
+      div.className='flex items-center gap-2 my-2';
+      dupla.forEach((p)=>{
+        if(p.photo){
+          const img=document.createElement('img');
+          img.src=p.photo;
+          img.alt='Foto';
+          img.className='w-8 h-8 object-cover rounded-full';
+          div.appendChild(img);
+        }
+      });
+      const txt=document.createElement('span');
+      txt.textContent=nomes+': '+scores[idx]+' pts';
+      div.appendChild(txt);
+      endPontuacaoFinal.appendChild(div);
+    });
+    indicesMax.forEach(()=>{
+      launchConfetti();
+    });
+  }
+
+  btnReiniciar.addEventListener('click', reiniciar);
+  function reiniciar(){
+    jogadores=[];
+    duplas=[];
+    scores=[];
+    palavrasRodada=[];
+    indicePalavra=0;
+    duplaAtual=0;
+    mostraPalavra=false;
+    tempoRestante=60;
+    historico=[];
+    inputNomeJogador.value='';
+    fotoJogador.value='';
+    renderJogadores();
+    exibirTelaConfig();
+  }
+
+  let historico=[];
+  function atualizarHistoricoNaTela(){
+    historicoAcoes.innerHTML='';
+    historico.forEach((h)=>{
+      let mensagem='';
+      let icone='';
+      if(h.acao==='DICA'){
+        icone='💡';
+        mensagem=`${icone} ${h.jogador}: "${h.texto}"`;
+      }else if(h.acao==='ERRO'){
+        icone='❌';
+        mensagem=`${icone} ${h.jogador}: "${h.texto}"`;
+      }else if(h.acao==='ACERTO'){
+        icone='✅';
+        mensagem=`${icone} ${h.jogador} +${h.points||0} pts`;
+      }else if(h.acao==='PULOU'){
+        icone='⏭️';
+        mensagem=`${icone} ${h.jogador}: ${h.texto}`;
+      }
+
+      const secretIcon=document.createElement('span');
+      secretIcon.textContent='🔎';
+      secretIcon.className='ml-2 text-blue-700 hover-scale';
+      secretIcon.title='Ver palavra secreta';
+      secretIcon.addEventListener('click',()=>{
+        alert(`A palavra secreta era: ${h.palavra}`);
+      });
+
+      const div=document.createElement('div');
+      div.textContent=mensagem;
+      div.appendChild(secretIcon);
+      historicoAcoes.appendChild(div);
+    });
+    historicoAcoes.scrollTop=historicoAcoes.scrollHeight;
+  }
+
+  function registrarHistorico(acao,texto,jogador,pontos){
+    const currentWord=palavrasRodada[indicePalavra]||'';
+    historico.push({acao,texto,jogador,points:pontos, palavra:currentWord});
+    atualizarHistoricoNaTela();
+  }
+
+  function renderPontuacao(){
+    scoreContainer.innerHTML='';
+    duplas.forEach((dupla,idx)=>{
+      let nomes=dupla[0].name.toUpperCase()+' & '+dupla[1].name.toUpperCase();
+      const row=document.createElement('div');
+      row.className='p-2 bg-white rounded shadow flex items-center gap-2';
+
+      dupla.forEach((p)=>{
+        if(p.photo){
+          const img=document.createElement('img');
+          img.src=p.photo;
+          img.alt='Foto';
+          img.className='w-6 h-6 object-cover rounded-full';
+          row.appendChild(img);
+        }
+      });
+      const txt=document.createElement('span');
+      txt.className='font-bold text-sm';
+      txt.textContent=nomes;
+      row.appendChild(txt);
+      const pts=document.createElement('span');
+      pts.className='text-blue-700 font-extrabold text-lg ml-auto';
+      pts.textContent=`${scores[idx]} pts`;
+      row.appendChild(pts);
+      scoreContainer.appendChild(row);
+    });
+  }
+
+  function getDoadorName(){
+    return duplas[duplaAtual][0].name.toUpperCase();
+  }
+  function getAdivinhadorName(){
+    return duplas[duplaAtual][1].name.toUpperCase();
+  }
 
   function atualizarDuplaNaTela(){
-    const doadorPlayer = duplas[duplaAtual][0];
-    const adivPlayer = duplas[duplaAtual][1];
+    const doadorPlayer=duplas[duplaAtual][0];
+    const adivPlayer=duplas[duplaAtual][1];
+    doadorLed.textContent=`${doadorPlayer.name}, é sua vez de dar a DICA!`;
+    adivLed.textContent=`${adivPlayer.name}, é sua vez de ADIVINHAR!`;
+
     doadorEl.textContent=doadorPlayer.name.toUpperCase();
     adivinhadorEl.textContent=adivPlayer.name.toUpperCase();
     conteudoPalavraEl.textContent=palavrasRodada[indicePalavra]||'';
@@ -617,64 +741,6 @@
     } else{
       adivinhadorFoto.classList.add('hidden');
     }
-  }
-
-  function encerrarPartida(){
-    exibirTelaFinal();
-    pararTimer();
-    let maiorPontuacao=Math.max(...scores);
-    let indicesMax=scores.map((val,idx)=> val===maiorPontuacao ? idx : -1).filter(i=>i>=0);
-    if(indicesMax.length>1){
-      endResultado.textContent='Temos um Empate!';
-    } else{
-      const campeaoArr=duplas[indicesMax[0]];
-      const campeao=campeaoArr[0].name+' & '+campeaoArr[1].name;
-      endResultado.textContent='Dupla Vencedora: '+campeao;
-    }
-
-    endPontuacaoFinal.innerHTML='<h2 class="font-semibold">Pontuação Final</h2>';
-    duplas.forEach((dupla,idx)=>{
-      let nomes = dupla[0].name.toUpperCase() + ' & ' + dupla[1].name.toUpperCase();
-      const div = document.createElement('div');
-      div.className = 'flex items-center gap-2 my-2';
-
-      dupla.forEach((p)=>{
-        if(p.photo){
-          const img=document.createElement('img');
-          img.src=p.photo;
-          img.alt='Foto';
-          img.className='w-8 h-8 object-cover rounded-full';
-          div.appendChild(img);
-        }
-      });
-
-      const txt=document.createElement('span');
-      txt.textContent= nomes + ': ' + scores[idx] + ' pts';
-      div.appendChild(txt);
-      endPontuacaoFinal.appendChild(div);
-    });
-
-    indicesMax.forEach(()=>{
-      launchConfetti();
-    });
-  }
-
-  btnReiniciar.addEventListener('click', reiniciar);
-
-  function reiniciar(){
-    jogadores=[];
-    duplas=[];
-    scores=[];
-    palavrasRodada=[];
-    indicePalavra=0;
-    duplaAtual=0;
-    mostraPalavra=false;
-    tempoRestante=60;
-    historico=[];
-    inputNomeJogador.value='';
-    fotoJogador.value='';
-    renderJogadores();
-    exibirTelaConfig();
   }
 
   function pararTimer(){
@@ -700,95 +766,55 @@
       }
       if(tempoRestante<=0){
         pararTimer();
-        registrarHistorico('PULOU','Tempo esgotado.',getAdivinhadorName());
+        registrarHistorico('PULOU','Tempo esgotado.', getAdivinhadorName());
         passarParaProximaDuplaMesmaPalavra();
       }
     },1000);
   }
 
-  function renderPontuacao(){
-    scoreContainer.innerHTML='';
-    duplas.forEach((dupla, idx)=>{
-      let nomes=dupla[0].name.toUpperCase()+' & '+dupla[1].name.toUpperCase();
-      const row=document.createElement('div');
-      row.className='p-2 bg-white rounded shadow flex items-center gap-2';
-
-      dupla.forEach((p)=>{
-        if(p.photo){
-          const img=document.createElement('img');
-          img.src=p.photo;
-          img.alt='Foto';
-          img.className='w-6 h-6 object-cover rounded-full';
-          row.appendChild(img);
-        }
-      });
-
-      const txt=document.createElement('span');
-      txt.className='font-bold text-sm';
-      txt.textContent=nomes;
-      row.appendChild(txt);
-
-      const pts=document.createElement('span');
-      pts.className='text-blue-700 font-extrabold text-lg ml-auto';
-      pts.textContent=`${scores[idx]} pts`;
-      row.appendChild(pts);
-
-      scoreContainer.appendChild(row);
-    });
+  function pularPalavra(){
+    registrarHistorico('PULOU','Palavra pulada',getAdivinhadorName());
+    pararTimer();
+    passarParaProximaPalavra();
   }
 
-  function registrarHistorico(acao, texto, jogador, pontos){
-    const currentWord=palavrasRodada[indicePalavra]||'';
-    historico.push({acao, texto, jogador, points:pontos, palavra:currentWord});
-    atualizarHistoricoNaTela();
+  function passarParaProximaPalavra(){
+    indicePalavra++;
+    if(indicePalavra>=palavrasRodada.length){
+      encerrarPartida();
+      return;
+    }
+    duplaAtual=(duplaAtual+1)%duplas.length;
+    tempoRestante=tempoMaximoValue;
+    tempoRestanteEl.textContent=tempoRestante;
+    primeiraTentativa=true;
+    tempoRestanteEl.classList.remove('text-red-600');
+    tempoRestanteEl.classList.add('text-green-600');
+    mostraPalavra=false;
+    togglePalavraCheckbox.checked=false;
+    palavraSecretaEl.classList.add('hidden');
+    eyeIcon.innerHTML=`<svg viewBox='0 0 64 64'><path d='M2 32c6-14 18-22 30-22s24 8 30 22c-6 14-18 22-30 22S8 46 2 32z' fill='#ccc'/><path d='M10 10 L54 54' stroke='#444' stroke-width='5'/></svg>`;
+    atualizarDuplaNaTela();
   }
 
-  function atualizarHistoricoNaTela(){
-    historicoAcoes.innerHTML='';
-    historico.forEach((h)=>{
-      let mensagem='';
-      let icone='';
-      if(h.acao==='DICA'){
-        icone='💡';
-        mensagem=`${icone} ${h.jogador}: "${h.texto}"`;
-      } else if(h.acao==='ERRO'){
-        icone='❌';
-        mensagem=`${icone} ${h.jogador}: "${h.texto}"`;
-      } else if(h.acao==='ACERTO'){
-        icone='✅';
-        mensagem=`${icone} ${h.jogador} +${h.points||0} pts`;
-      } else if(h.acao==='PULOU'){
-        icone='⏭️';
-        mensagem=`${icone} ${h.jogador}: ${h.texto}`;
-      }
-
-      const secretIcon=document.createElement('span');
-      secretIcon.textContent='🔎';
-      secretIcon.className='ml-2 text-blue-700 hover-scale';
-      secretIcon.title='Ver palavra secreta';
-      secretIcon.addEventListener('click',()=>{
-        alert(`A palavra secreta era: ${h.palavra}`);
-      });
-
-      const div=document.createElement('div');
-      div.textContent=mensagem;
-      div.appendChild(secretIcon);
-      historicoAcoes.appendChild(div);
-    });
-    historicoAcoes.scrollTop=historicoAcoes.scrollHeight;
-  }
-
-  function getDoadorName(){
-    return duplas[duplaAtual][0].name.toUpperCase();
-  }
-  function getAdivinhadorName(){
-    return duplas[duplaAtual][1].name.toUpperCase();
+  function passarParaProximaDuplaMesmaPalavra(){
+    pararTimer();
+    duplaAtual=(duplaAtual+1)%duplas.length;
+    tempoRestante=tempoMaximoValue;
+    tempoRestanteEl.textContent=tempoRestante;
+    tempoRestanteEl.classList.remove('text-red-600');
+    tempoRestanteEl.classList.add('text-green-600');
+    mostraPalavra=false;
+    togglePalavraCheckbox.checked=false;
+    palavraSecretaEl.classList.add('hidden');
+    eyeIcon.innerHTML=`<svg viewBox='0 0 64 64'><path d='M2 32c6-14 18-22 30-22s24 8 30 22c-6 14-18 22-30 22S8 46 2 32z' fill='#ccc'/><path d='M10 10 L54 54' stroke='#444' stroke-width='5'/></svg>`;
+    atualizarDuplaNaTela();
   }
 
   function enviarDica(){
     const dica=campoDica.value.trim();
     if(!dica)return;
-    registrarHistorico('DICA',dica,getDoadorName());
+    registrarHistorico('DICA', dica, getDoadorName());
     campoDica.value='';
   }
 
@@ -815,78 +841,39 @@
     campoChute.value='';
   }
 
-  function pularPalavra(){
-    registrarHistorico('PULOU','Palavra pulada',getAdivinhadorName());
-    pararTimer();
-    passarParaProximaPalavra();
-  }
-
-  function passarParaProximaPalavra(){
-    indicePalavra++;
-    if(indicePalavra>=palavrasRodada.length){
-      encerrarPartida();
-      return;
-    }
-
-    duplaAtual=(duplaAtual+1)%duplas.length;
-
-    tempoRestante=tempoMaximoValue;
-    tempoRestanteEl.textContent=tempoRestante;
-    primeiraTentativa=true;
-
-    tempoRestanteEl.classList.remove('text-red-600');
-    tempoRestanteEl.classList.add('text-green-600');
-
-    mostraPalavra=false;
-    togglePalavraCheckbox.checked=false;
-    palavraSecretaEl.classList.add('hidden');
-    eyeIcon.innerHTML=`<svg viewBox='0 0 64 64'><path d='M2 32c6-14 18-22 30-22s24 8 30 22c-6 14-18 22-30 22S8 46 2 32z' fill='#ccc'/><path d='M10 10 L54 54' stroke='#444' stroke-width='5'/></svg>`;
-
-    atualizarDuplaNaTela();
-  }
-
-  function passarParaProximaDuplaMesmaPalavra(){
-    pararTimer();
-    duplaAtual=(duplaAtual+1)%duplas.length;
-
-    tempoRestante=tempoMaximoValue;
-    tempoRestanteEl.textContent=tempoRestante;
-    tempoRestanteEl.classList.remove('text-red-600');
-    tempoRestanteEl.classList.add('text-green-600');
-
-    mostraPalavra=false;
-    togglePalavraCheckbox.checked=false;
-    palavraSecretaEl.classList.add('hidden');
-    eyeIcon.innerHTML=`<svg viewBox='0 0 64 64'><path d='M2 32c6-14 18-22 30-22s24 8 30 22c-6 14-18 22-30 22S8 46 2 32z' fill='#ccc'/><path d='M10 10 L54 54' stroke='#444' stroke-width='5'/></svg>`;
-
-    atualizarDuplaNaTela();
-  }
-
-  function falarRegras(){
+  // Regras
+  btnRegras.addEventListener('click',()=>{
+    modalRegras.classList.remove('hidden');
+    modalRegras.classList.add('flex');
+  });
+  btnFecharModal.addEventListener('click',()=>{
+    modalRegras.classList.add('hidden');
+    modalRegras.classList.remove('flex');
+  });
+  btnFalarRegras.addEventListener('click',()=>{
     const msg=new SpeechSynthesisUtterance();
     msg.text=`
       1) Forme duplas de jogadores, com no mínimo 4 pessoas (número par).
       2) A cada palavra, a dupla da vez inicia tentando acertar: se acertar de primeira, ganha 2 pontos.
       3) Se errar, as outras duplas (ou ela mesma, em nova vez) só ganham 1 ponto se acertarem.
       4) Se pular ou o tempo acabar, passa para a próxima dupla, podendo manter a mesma palavra ou avançar, dependendo do caso.
-      5) Ao final do banco de palavras, a dupla com maior pontuação vence. Em caso de empate, ambos vencem.
+      5) Ao final do banco de palavras, a dupla com maior pontuação vence.
     `;
     msg.lang='pt-BR';
     speechSynthesis.speak(msg);
-  }
-
-  btnRegras.addEventListener('click', ()=>{
-    modalRegras.classList.remove('hidden');
-    modalRegras.classList.add('flex');
   });
 
-  btnFecharModal.addEventListener('click', ()=>{
-    modalRegras.classList.add('hidden');
-    modalRegras.classList.remove('flex');
-  });
-
-  btnFalarRegras.addEventListener('click', ()=>{
-    falarRegras();
+  // Toggle exibir palavra secreta
+  togglePalavraCheckbox.addEventListener('change',(evt)=>{
+    if(evt.target.checked){
+      palavraSecretaEl.classList.remove('hidden');
+      eyeIcon.innerHTML=`<svg viewBox='0 0 64 64'><path d='M2 32c6-14 18-22 30-22s24 8 30 22c-6 14-18 22-30 22S8 46 2 32z' fill='#ccc'/><!-- open eye --> <circle cx='32' cy='32' r='8' fill='#444'/> </svg>`;
+      mostraPalavra=true;
+    } else{
+      palavraSecretaEl.classList.add('hidden');
+      eyeIcon.innerHTML=`<svg viewBox='0 0 64 64'><path d='M2 32c6-14 18-22 30-22s24 8 30 22c-6 14-18 22-30 22S8 46 2 32z' fill='#ccc'/><path d='M10 10 L54 54' stroke='#444' stroke-width='5'/></svg>`;
+      mostraPalavra=false;
+    }
   });
 
   btnIniciarTempo.addEventListener('click', iniciarTimer);
@@ -894,9 +881,8 @@
   btnEnviarChute.addEventListener('click', enviarChute);
   btnPular.addEventListener('click', pularPalavra);
 
-  // Inicia
+  // Start
   exibirTelaConfig();
 </script>
 </body>
 </html>
-
