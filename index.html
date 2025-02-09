@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Qual é a Palavra? - Layout 16x9, Debug Logs (Fixed duplas duplication)</title>
+  <title>Qual é a Palavra? - Layout 16x9, Debug Logs (Fixed Missing palavrasBanco)</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Confetti -->
@@ -256,6 +256,14 @@
     return array;
   }
 
+  /* The missing variable definition */
+  const palavrasBanco={
+    'PT-BR':['cachorro','arco-iris','vermelho','futebol','jantar'],
+    'PT-PT':['cão','arc-íris','vermelho','futebol','jantar'],
+    'EN-US':['dog','rainbow','red','soccer','dinner'],
+    'ES':['perro','arcoiris','rojo','futbol','cena']
+  };
+
   const modalRegras=document.getElementById('modalRegras');
   const btnRegras=document.getElementById('btnRegras');
   const btnFecharModal=document.getElementById('btnFecharModal');
@@ -477,6 +485,18 @@
       listaJogadoresEl.appendChild(div);
     });
   }
+
+  let duplas=[];
+  let scores=[];
+  let palavrasRodada=[];
+  let indicePalavra=0;
+  let duplaAtual=0;
+  let primeiraTentativa=true;
+  let mostraPalavra=false;
+  let tempoMaximoValue=60;
+  let tempoRestante=60;
+  let timerInterval=null;
+  let historico=[];
 
   function iniciarJogo(){
     console.log('iniciarJogo() => total jogadores =',jogadores.length);
@@ -848,4 +868,5 @@
 </script>
 </body>
 </html>
+
 
