@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Qual é a Palavra? - Câmera e Confetes (Final Debugged)</title>
-  <!-- Tailwind CSS via CDN -->
+  <title>Qual é a Palavra? - Final Stable Version</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -189,6 +189,7 @@
       </select>
     </div>
 
+    <!-- single const for btnIniciar. removing duplicates. -->
     <button id="btnIniciar" class="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded w-full font-bold text-lg shadow-lg">
       Iniciar
     </button>
@@ -348,7 +349,6 @@
   const modoDuplasSelect=document.getElementById('modoDuplas');
 
   const btnAdicionarJogador=document.getElementById('btnAdicionarJogador');
-  /* single const for btnIniciar. removing duplicates. */
   const btnIniciar=document.getElementById('btnIniciar');
 
   const btnEncerrar=document.getElementById('btnEncerrar');
@@ -542,6 +542,21 @@
 
   btnIniciar.addEventListener('click', iniciarJogo);
 
+  let jogadores=[];
+  let duplas=[];
+  let scores=[];
+  let palavrasRodada=[];
+  let indicePalavra=0;
+  let duplaAtual=0;
+  let primeiraTentativa=true;
+  let mostraPalavra=false;
+  let historico=[];
+
+  /* Only ONE let tempoMaximoValue. No second let anywhere. */
+  let tempoMaximoValue=60;
+  let tempoRestante=60;
+  let timerInterval=null;
+
   function iniciarJogo(){
     if(jogadores.length<4 || (jogadores.length%2!==0)){
       alert('É necessário ao menos 4 jogadores (número par).');
@@ -567,6 +582,7 @@
     duplaAtual=0;
     primeiraTentativa=true;
 
+    // read from tempoMaximoSelect
     tempoMaximoValue=parseInt(tempoMaximoSelect.value)||60;
     tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
@@ -585,7 +601,18 @@
     exibirTelaPrincipal();
   }
 
+  const btnEncerrar=document.getElementById('btnEncerrar');
   btnEncerrar.addEventListener('click', encerrarPartida);
+
+  const endResultado=document.getElementById('resultado');
+  const endPontuacaoFinal=document.getElementById('pontuacaoFinal');
+
+  let palavrasBanco={
+    'PT-BR': ['cachorro','arco-iris','vermelho','futebol','jantar'],
+    'PT-PT': ['cão','arc-íris','vermelho','futebol','jantar'],
+    'EN-US': ['dog','rainbow','red','soccer','dinner'],
+    'ES': ['perro','arcoiris','rojo','futbol','cena']
+  };
 
   function encerrarPartida(){
     exibirTelaFinal();
@@ -623,6 +650,7 @@
     });
   }
 
+  const btnReiniciar=document.getElementById('btnReiniciar');
   btnReiniciar.addEventListener('click', reiniciar);
   function reiniciar(){
     jogadores=[];
@@ -640,6 +668,7 @@
     exibirTelaConfig();
   }
 
+  let historico=[];
   function atualizarHistoricoNaTela(){
     historicoAcoes.innerHTML='';
     historico.forEach((h)=>{
@@ -648,13 +677,13 @@
       if(h.acao==='DICA'){
         icone='💡';
         mensagem=`${icone} ${h.jogador}: "${h.texto}"`;
-      }else if(h.acao==='ERRO'){
+      } else if(h.acao==='ERRO'){
         icone='❌';
         mensagem=`${icone} ${h.jogador}: "${h.texto}"`;
-      }else if(h.acao==='ACERTO'){
+      } else if(h.acao==='ACERTO'){
         icone='✅';
         mensagem=`${icone} ${h.jogador} +${h.points||0} pts`;
-      }else if(h.acao==='PULOU'){
+      } else if(h.acao==='PULOU'){
         icone='⏭️';
         mensagem=`${icone} ${h.jogador}: ${h.texto}`;
       }
@@ -681,13 +710,13 @@
     atualizarHistoricoNaTela();
   }
 
+  const scoreContainer=document.getElementById('scoreContainer');
   function renderPontuacao(){
     scoreContainer.innerHTML='';
     duplas.forEach((dupla,idx)=>{
       let nomes=dupla[0].name.toUpperCase()+' & '+dupla[1].name.toUpperCase();
       const row=document.createElement('div');
       row.className='p-2 bg-white rounded shadow flex items-center gap-2';
-
       dupla.forEach((p)=>{
         if(p.photo){
           const img=document.createElement('img');
@@ -740,6 +769,8 @@
     }
   }
 
+  const clockHand=document.getElementById('clockHand');
+
   function pararTimer(){
     if(timerInterval){
       clearInterval(timerInterval);
@@ -770,7 +801,7 @@
   }
 
   function pularPalavra(){
-    registrarHistorico('PULOU','Palavra pulada',getAdivinhadorName());
+    registrarHistorico('PULOU','Palavra pulada', getAdivinhadorName());
     pararTimer();
     passarParaProximaPalavra();
   }
@@ -872,9 +903,16 @@
     }
   });
 
+  const btnIniciarTempo=document.getElementById('btnIniciarTempo');
   btnIniciarTempo.addEventListener('click', iniciarTimer);
+
+  const btnEnviarDica=document.getElementById('btnEnviarDica');
   btnEnviarDica.addEventListener('click', enviarDica);
+
+  const btnEnviarChute=document.getElementById('btnEnviarChute');
   btnEnviarChute.addEventListener('click', enviarChute);
+
+  const btnPular=document.getElementById('btnPular');
   btnPular.addEventListener('click', pularPalavra);
 
   const colorPalette = [
@@ -893,3 +931,4 @@
 </script>
 </body>
 </html>
+
