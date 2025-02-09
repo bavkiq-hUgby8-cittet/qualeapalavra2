@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Qual é a Palavra? - Fix Duplicate primeiraTentativa</title>
+  <title>Qual é a Palavra? - Layout 16x9, Debug Logs</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Confetti -->
@@ -14,7 +14,11 @@
       transition: transform 0.2s;
       cursor: pointer;
     }
-    /* Timer color transition (green -> red) handled in script. */
+    .secret-centered {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #FF0000;
+    }
   </style>
 </head>
 <body class="w-screen min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-2 md:p-6 overflow-x-hidden">
@@ -87,7 +91,6 @@
         <input type="file" id="fotoJogador" accept="image/*" capture="user" class="border border-gray-300 p-3 rounded w-full md:w-1/2 bg-white"/>
       </div>
 
-      <!-- Câmera -->
       <div class="flex gap-2 mb-4">
         <button id="btnAbrirCamera" class="bg-blue-400 hover:bg-blue-500 text-white px-3 py-2 rounded font-semibold shadow">Abrir Câmera</button>
         <button id="btnCapturarFoto" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-semibold shadow hidden">Capturar Foto</button>
@@ -102,7 +105,6 @@
       </div>
 
       <div id="listaJogadores" class="bg-blue-50 border border-blue-200 p-3 rounded h-32 overflow-y-auto">
-        <!-- Lista de jogadores com botao excluir -->
       </div>
     </div>
 
@@ -117,75 +119,85 @@
     <button id="btnIniciar" class="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded w-full font-bold text-lg shadow-lg">Iniciar</button>
   </div>
 
-  <!-- Tela Principal -->
-  <div id="main-screen" class="w-full max-w-5xl p-2 md:p-4 hidden">
-    <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+  <!-- TELA PRINCIPAL (versão 16:9, com a Palavra Secreta ao centro) -->
+  <div id="main-screen" class="w-full max-w-[1600px] aspect-video bg-white rounded-xl shadow-2xl relative hidden">
+    <!-- Score + Encerrar -->
+    <div class="absolute top-0 left-0 w-full flex justify-between items-center p-4">
       <button id="btnEncerrar" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold shadow">Encerrar Partida</button>
-      <div id="boxPontuacao" class="bg-gradient-to-r from-blue-50 to-white p-4 rounded-xl shadow-md text-sm w-full md:w-96">
-        <h2 class="text-lg font-bold mb-3 text-center">Pontuação</h2>
+      <div id="boxPontuacao" class="bg-gradient-to-r from-blue-50 to-white p-4 rounded-xl shadow-md text-sm">
+        <h2 class="text-lg font-bold mb-2 text-center">Pontuação</h2>
         <div id="scoreContainer" class="flex flex-col gap-2"></div>
       </div>
     </div>
 
-    <div class="mb-4 p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl">
-      <h2 class="text-xl font-semibold mb-3">Dupla Atual</h2>
-      <div class="flex items-center gap-2 mb-2">
-        <img id="doadorFoto" src="" alt="Foto do Doador" class="w-12 h-12 object-cover rounded-full hidden"/>
-        <p class="text-lg font-bold text-blue-700">JOGADOR DE DICA: <span id="doador" class="bg-white rounded px-2 py-1"></span></p>
+    <!-- Timer e Pular -->
+    <div class="absolute top-16 right-4 bg-white/70 p-2 rounded shadow flex flex-col items-center gap-2">
+      <div class="text-xl font-bold flex flex-col items-center">
+        <span>Tempo Restante</span>
+        <span id="tempoRestante" class="text-green-600 font-extrabold text-2xl">60</span>
       </div>
-
-      <div class="flex items-center gap-2 mb-2">
-        <img id="adivinhadorFoto" src="" alt="Foto do Adivinhador" class="w-12 h-12 object-cover rounded-full hidden"/>
-        <p class="text-lg font-bold text-green-700">ADIVINHADOR: <span id="adivinhador" class="bg-white rounded px-2 py-1"></span></p>
-      </div>
-
-      <div class="mt-2 flex items-center gap-2">
-        <input type="checkbox" id="togglePalavra" class="hidden" />
-        <label for="togglePalavra" id="labelToggle" class="cursor-pointer bg-gray-300 p-2 rounded shadow">
-          <span id="eyeIcon">🔒</span>
-        </label>
-        <span id="palavraSecreta" class="ml-2 hidden bg-white text-red-500 px-2 py-1 rounded shadow">
-          <strong>Palavra Secreta:</strong> <span id="conteudoPalavra"></span>
-        </span>
-      </div>
-    </div>
-
-    <!-- Timer e status -->
-    <div class="mb-4 flex items-center gap-4">
-      <div class="text-xl font-bold flex gap-2 items-center">
-        <span>Tempo Restante:</span>
-        <span id="tempoRestante" class="text-green-600 font-extrabold text-2xl">60</span> <span>seg</span>
-      </div>
-      <button id="btnIniciarTempo" class="rounded-full w-16 h-16 bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow" title="Iniciar Tempo">
-        <span class="text-3xl">⏲</span>
+      <button id="btnIniciarTempo" class="rounded-full w-12 h-12 bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow" title="Iniciar Tempo">
+        ⏲
       </button>
+      <button id="btnPular" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded font-semibold shadow">Pular</button>
     </div>
 
-    <div class="mb-4 p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl">
-      <div class="mb-4">
-        <label class="block font-bold mb-2">Dica para o Adivinhador:</label>
-        <div class="flex gap-2">
-          <input type="text" id="campoDica" class="border border-gray-300 p-2 rounded w-full bg-white" />
-          <button id="btnEnviarDica" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow">OK</button>
+    <!-- Painel com Info da Dupla e Palavras/Hints no rodapé -->
+    <div class="absolute bottom-0 left-0 w-full p-4">
+      <div class="flex flex-col md:flex-row gap-4 justify-between">
+        <!-- Dupla Atual -->
+        <div class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/2">
+          <h2 class="text-xl font-semibold mb-2">Dupla Atual</h2>
+          <div class="flex items-center gap-2 mb-2">
+            <img id="doadorFoto" src="" alt="Foto do Doador" class="w-12 h-12 object-cover rounded-full hidden"/>
+            <p class="text-lg font-bold text-blue-700">DICA: <span id="doador" class="bg-white rounded px-2 py-1"></span></p>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <img id="adivinhadorFoto" src="" alt="Foto do Adivinhador" class="w-12 h-12 object-cover rounded-full hidden"/>
+            <p class="text-lg font-bold text-green-700">ADIV.: <span id="adivinhador" class="bg-white rounded px-2 py-1"></span></p>
+          </div>
+          <!-- Exibição da palavra secreta, toggle -->
+          <div class="mt-2 flex items-center gap-2">
+            <input type="checkbox" id="togglePalavra" class="hidden" />
+            <label for="togglePalavra" id="labelToggle" class="cursor-pointer bg-gray-300 p-2 rounded shadow">
+              <span id="eyeIcon">🔒</span>
+            </label>
+            <span id="palavraSecreta" class="ml-2 hidden bg-white text-red-500 px-2 py-1 rounded shadow">
+              <strong>Palavra Secreta:</strong> <span id="conteudoPalavra"></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Campo Dica e Chute -->
+        <div class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/2">
+          <div class="mb-3">
+            <label class="block font-bold mb-1">Dica:</label>
+            <div class="flex gap-2">
+              <input type="text" id="campoDica" class="border border-gray-300 p-2 rounded w-full bg-white" />
+              <button id="btnEnviarDica" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow">OK</button>
+            </div>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">Chute:</label>
+            <div class="flex gap-2">
+              <input type="text" id="campoChute" class="border border-gray-300 p-2 rounded w-full bg-white" />
+              <button id="btnEnviarChute" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow">OK</button>
+            </div>
+          </div>
         </div>
       </div>
-      <div>
-        <label class="block font-bold mb-2">Chute do Adivinhador:</label>
-        <div class="flex gap-2">
-          <input type="text" id="campoChute" class="border border-gray-300 p-2 rounded w-full bg-white" />
-          <button id="btnEnviarChute" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow">OK</button>
+
+      <!-- Histórico -->
+      <div class="mt-4 bg-gradient-to-br from-blue-50 to-white p-4 rounded-2xl shadow">
+        <h3 class="text-xl font-semibold mb-2">Histórico</h3>
+        <div id="historicoAcoes" class="h-40 overflow-y-auto text-sm border border-gray-300 p-2 rounded bg-white">
         </div>
       </div>
     </div>
 
-    <div class="mb-4">
-      <button id="btnPular" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold shadow">Pular Palavra (mesma dupla)</button>
-    </div>
-
-    <div class="bg-gradient-to-br from-blue-50 to-white p-4 rounded-2xl shadow-2xl w-full">
-      <h3 class="text-xl font-semibold mb-2">Histórico</h3>
-      <div id="historicoAcoes" class="h-60 overflow-y-auto text-sm border border-gray-300 p-2 rounded bg-white">
-      </div>
+    <!-- Palavra Secreta ao Centro, em destaque -->
+    <div id="secretCenter" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-5xl font-extrabold text-red-600 hidden pointer-events-none">
+      <span id="palavraSecretaCentro"></span>
     </div>
   </div>
 
@@ -199,7 +211,6 @@
 </div>
 
 <script>
-  /* colorPalette fix. */
   const colorPalette=[
     'bg-red-200 text-red-800',
     'bg-green-200 text-green-800',
@@ -211,7 +222,6 @@
     'bg-teal-200 text-teal-800'
   ];
 
-  /* Confetti logic */
   const confettiCanvas=document.getElementById('confettiCanvas');
   const confettiCtx=confettiCanvas.getContext('2d');
   confettiCanvas.width=window.innerWidth;
@@ -291,24 +301,17 @@
   const togglePalavraCheckbox=document.getElementById('togglePalavra');
   const eyeIcon=document.getElementById('eyeIcon');
 
+  const secretCenter=document.getElementById('secretCenter');
+  const palavraSecretaCentro=document.getElementById('palavraSecretaCentro');
+
   let jogadores=[];
   let duplas=[];
   let scores=[];
-
-  let palavrasBanco={
-    'PT-BR':['cachorro','arco-iris','vermelho','futebol','jantar','cachorro'],
-    'PT-PT':['cão','arc-íris','vermelho','futebol','jantar'],
-    'EN-US':['dog','rainbow','red','soccer','dinner'],
-    'ES':['perro','arcoiris','rojo','futbol','cena']
-  };
-
   let palavrasRodada=[];
   let indicePalavra=0;
   let duplaAtual=0;
-  /* Single definition of primeiraTentativa, no duplicates */
   let primeiraTentativa=true;
   let mostraPalavra=false;
-
   let tempoMaximoValue=60;
   let tempoRestante=60;
   let timerInterval=null;
@@ -317,19 +320,24 @@
   let cameraStream=null;
   let tempFotoDataUrl='';
 
+  console.log('SCRIPT LOADED: Checking event listeners...');
+
   function exibirTelaConfig(){
+    console.log('exibirTelaConfig()');
     configScreen.classList.remove('hidden');
     mainScreen.classList.add('hidden');
     endScreen.classList.add('hidden');
   }
 
   function exibirTelaPrincipal(){
+    console.log('exibirTelaPrincipal()');
     configScreen.classList.add('hidden');
     mainScreen.classList.remove('hidden');
     endScreen.classList.add('hidden');
   }
 
   function exibirTelaFinal(){
+    console.log('exibirTelaFinal()');
     configScreen.classList.add('hidden');
     mainScreen.classList.add('hidden');
     endScreen.classList.remove('hidden');
@@ -341,6 +349,7 @@
   }
 
   function falarRegras(){
+    console.log('falarRegras()');
     const msg=new SpeechSynthesisUtterance();
     msg.text=`\n      1) Você deve formar duplas de jogadores.\n      2) Em cada palavra, a dupla que iniciar tem chance de ganhar 2 pontos se acertar de primeira.\n      3) Se errar, as outras duplas (ou a mesma dupla em nova vez) ganham 1 ponto se acertarem.\n      4) Se pular ou o tempo acabar, passa para a próxima dupla ou próxima palavra.\n      5) Ao final, a dupla com mais pontos vence.\n    `;
     msg.lang='pt-BR';
@@ -349,19 +358,25 @@
 
   // CAMERA
   btnAbrirCamera.addEventListener('click', async()=>{
+    console.log('Abrir Camera clicked');
     try{
       cameraStream=await navigator.mediaDevices.getUserMedia({video:true});
       videoCamera.srcObject=cameraStream;
       videoCamera.classList.remove('hidden');
       btnCapturarFoto.classList.remove('hidden');
       canvasFoto.classList.add('hidden');
+      console.log('Camera stream opened');
     } catch(err){
       alert('Não foi possível acessar a câmera: '+err);
     }
   });
 
   btnCapturarFoto.addEventListener('click',()=>{
-    if(!cameraStream)return;
+    console.log('Capturar Foto clicked');
+    if(!cameraStream){
+      console.log('No camera stream available');
+      return;
+    }
     canvasFoto.classList.remove('hidden');
     canvasFoto.width=videoCamera.videoWidth;
     canvasFoto.height=videoCamera.videoHeight;
@@ -378,25 +393,29 @@
     }
 
     tempFotoDataUrl=dataUrl;
+    console.log('Photo captured =>', dataUrl.length,'chars');
   });
 
   // Adicionar e Excluir jogador
   function adicionarJogador(){
+    console.log('adicionarJogador() called');
     let nomeDigitado=inputNomeJogador.value.trim()||`Convidado #${jogadores.length+1}`;
     let colorClass=colorPalette[jogadores.length%colorPalette.length];
 
     let fotoDataUrl='';
     const file=inputFotoJogador.files[0];
 
+    console.log(' Nome =>',nomeDigitado,' file =>', file,' tempFotoDataUrl=>',tempFotoDataUrl);
+
     if(tempFotoDataUrl){
-      // se tem foto da câmera
       fotoDataUrl=tempFotoDataUrl;
       tempFotoDataUrl='';
     } else if(file){
-      // se há file input
+      console.log('Reading file input');
       const reader=new FileReader();
       reader.onload=(e)=>{
         fotoDataUrl=e.target.result;
+        console.log('File read =>', fotoDataUrl.length,'chars');
         pushJogador(nomeDigitado,colorClass,fotoDataUrl);
       };
       reader.readAsDataURL(file);
@@ -407,12 +426,10 @@
   }
 
   function pushJogador(name,colorClass,fotoDataUrl){
-    const newPlayer={
-      name,
-      color:colorClass,
-      photo:fotoDataUrl,
-    };
+    const newPlayer={name,color:colorClass,photo:fotoDataUrl};
+    console.log('pushJogador() =>', newPlayer);
     jogadores.push(newPlayer);
+    console.log('jogadores array =>', jogadores);
 
     inputNomeJogador.value='';
     fotoJogador.value='';
@@ -420,11 +437,13 @@
   }
 
   function removerJogador(idx){
+    console.log('removerJogador idx=>',idx);
     jogadores.splice(idx,1);
     renderJogadores();
   }
 
   function renderJogadores(){
+    console.log('renderJogadores =>', jogadores);
     listaJogadoresEl.innerHTML='';
     jogadores.forEach((player,idx)=>{
       const div=document.createElement('div');
@@ -459,7 +478,20 @@
     });
   }
 
+  let duplas=[];
+  let scores=[];
+  let palavrasRodada=[];
+  let indicePalavra=0;
+  let duplaAtual=0;
+  let primeiraTentativa=true;
+  let mostraPalavra=false;
+  let tempoMaximoValue=60;
+  let tempoRestante=60;
+  let timerInterval=null;
+  let historico=[];
+
   function iniciarJogo(){
+    console.log('iniciarJogo() => total jogadores =',jogadores.length);
     if(jogadores.length<4 || (jogadores.length%2!==0)){
       alert('É necessário ao menos 4 jogadores (número par).');
       return;
@@ -481,8 +513,8 @@
     const idioma=getSelectedIdioma();
     let listaPalavrasBrutas=Array.from(new Set(palavrasBanco[idioma]||[]));
     shuffleArray(listaPalavrasBrutas);
-
     palavrasRodada=listaPalavrasBrutas.slice(0,5);
+
     indicePalavra=0;
     duplaAtual=0;
     primeiraTentativa=true;
@@ -506,6 +538,7 @@
   }
 
   function atualizarDuplaNaTela(){
+    console.log('atualizarDuplaNaTela => duplaAtual=',duplaAtual);
     const doadorPlayer=duplas[duplaAtual][0];
     const adivPlayer=duplas[duplaAtual][1];
 
@@ -529,6 +562,7 @@
   }
 
   function encerrarPartida(){
+    console.log('encerrarPartida()');
     exibirTelaFinal();
     pararTimer();
 
@@ -570,6 +604,7 @@
   }
 
   function reiniciar(){
+    console.log('reiniciar()');
     jogadores=[];
     duplas=[];
     scores=[];
@@ -587,12 +622,14 @@
 
   function pararTimer(){
     if(timerInterval){
+      console.log('pararTimer()');
       clearInterval(timerInterval);
       timerInterval=null;
     }
   }
 
   function iniciarTimer(){
+    console.log('iniciarTimer()');
     pararTimer();
     timerInterval=setInterval(()=>{
       tempoRestante--;
@@ -607,14 +644,16 @@
       }
 
       if(tempoRestante<=0){
+        console.log('tempo acabou');
         pararTimer();
-        registrarHistorico('PULOU','Tempo esgotado.',getAdivinhadorName());
+        registrarHistorico('PULOU','Tempo esgotado.', getAdivinhadorName());
         passarParaProximaDuplaMesmaPalavra();
       }
     },1000);
   }
 
   function renderPontuacao(){
+    console.log('renderPontuacao() => duplas:',duplas,' scores:',scores);
     scoreContainer.innerHTML='';
     duplas.forEach((dupla,idx)=>{
       let nomes=dupla[0].name.toUpperCase()+' & '+dupla[1].name.toUpperCase();
@@ -646,12 +685,14 @@
   }
 
   function registrarHistorico(acao,texto,jogador,pontos){
+    console.log('registrarHistorico =>', {acao,texto,jogador,pontos});
     const currentWord=palavrasRodada[indicePalavra]||'';
     historico.push({acao,texto,jogador,points:pontos, palavra:currentWord});
     atualizarHistoricoNaTela();
   }
 
   function atualizarHistoricoNaTela(){
+    console.log('atualizarHistoricoNaTela =>', historico);
     historicoAcoes.innerHTML='';
     historico.forEach((h)=>{
       let mensagem='';
@@ -687,13 +728,18 @@
   }
 
   function getDoadorName(){
-    return duplas[duplaAtual][0].name.toUpperCase();
+    const nm=duplas[duplaAtual][0].name.toUpperCase();
+    console.log('getDoadorName =>',nm);
+    return nm;
   }
   function getAdivinhadorName(){
-    return duplas[duplaAtual][1].name.toUpperCase();
+    const nm=duplas[duplaAtual][1].name.toUpperCase();
+    console.log('getAdivinhadorName =>',nm);
+    return nm;
   }
 
   function enviarDica(){
+    console.log('enviarDica() =>', campoDica.value);
     const dica=campoDica.value.trim();
     if(!dica)return;
     registrarHistorico('DICA',dica,getDoadorName());
@@ -701,20 +747,23 @@
   }
 
   function enviarChute(){
+    console.log('enviarChute() =>', campoChute.value);
     const chute=campoChute.value.trim();
     if(!chute)return;
     const palavraAtual=palavrasRodada[indicePalavra];
     if(!palavraAtual)return;
 
     if(chute.toLowerCase()===palavraAtual.toLowerCase()){
+      console.log('CHUTE ACERTOU');
       const adiv=getAdivinhadorName();
       const pontos=primeiraTentativa?2:1;
-      registrarHistorico('ACERTO',chute,adiv,pontos);
+      registrarHistorico('ACERTO', chute, adiv, pontos);
       scores[duplaAtual]+=pontos;
       renderPontuacao();
       passarParaProximaPalavra();
     } else{
-      registrarHistorico('ERRO',chute,getAdivinhadorName());
+      console.log('CHUTE ERROU');
+      registrarHistorico('ERRO', chute, getAdivinhadorName());
       if(primeiraTentativa){
         primeiraTentativa=false;
       }
@@ -724,12 +773,14 @@
   }
 
   function pularPalavra(){
-    registrarHistorico('PULOU','Palavra pulada',getAdivinhadorName());
+    console.log('pularPalavra()');
+    registrarHistorico('PULOU','Palavra pulada', getAdivinhadorName());
     pararTimer();
     passarParaProximaPalavra();
   }
 
   function passarParaProximaPalavra(){
+    console.log('passarParaProximaPalavra()');
     indicePalavra++;
     if(indicePalavra>=palavrasRodada.length){
       encerrarPartida();
@@ -737,7 +788,6 @@
     }
 
     duplaAtual=(duplaAtual+1)%duplas.length;
-
     tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
     primeiraTentativa=true;
@@ -754,9 +804,9 @@
   }
 
   function passarParaProximaDuplaMesmaPalavra(){
+    console.log('passarParaProximaDuplaMesmaPalavra()');
     pararTimer();
     duplaAtual=(duplaAtual+1)%duplas.length;
-
     tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
     tempoRestanteEl.classList.remove('text-red-600');
@@ -770,9 +820,19 @@
     atualizarDuplaNaTela();
   }
 
-  // Single definition of falarRegras
+  // Event Listeners
+  btnRegras.addEventListener('click',()=>{
+    modalRegras.classList.remove('hidden');
+    modalRegras.classList.add('flex');
+  });
+  btnFecharModal.addEventListener('click',()=>{
+    modalRegras.classList.add('hidden');
+    modalRegras.classList.remove('flex');
+  });
+  btnFalarRegras.addEventListener('click',()=>{
+    falarRegras();
+  });
 
-  // EVENTOS
   btnAdicionarJogador.addEventListener('click',adicionarJogador);
   btnIniciar.addEventListener('click',iniciarJogo);
   btnEncerrar.addEventListener('click',encerrarPartida);
@@ -795,21 +855,8 @@
   btnEnviarChute.addEventListener('click',enviarChute);
   btnPular.addEventListener('click',pularPalavra);
 
-  btnRegras.addEventListener('click',()=>{
-    modalRegras.classList.remove('hidden');
-    modalRegras.classList.add('flex');
-  });
-  btnFecharModal.addEventListener('click',()=>{
-    modalRegras.classList.add('hidden');
-    modalRegras.classList.remove('flex');
-  });
-  btnFalarRegras.addEventListener('click',()=>{
-    falarRegras();
-  });
-
-  // Inicia
+  console.log('Adding initial exibirTelaConfig');
   exibirTelaConfig();
 </script>
 </body>
 </html>
-
