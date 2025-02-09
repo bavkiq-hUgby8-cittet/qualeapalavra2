@@ -56,6 +56,8 @@
         3) Se errar, as outras duplas ganham 1 ponto se acertarem.<br>
         4) Se pular ou o tempo acabar, passa para a próxima dupla ou próxima palavra.<br>
         5) Ao final, a dupla com mais pontos vence.<br>
+        <!-- Nova regra -->
+        6) Não pode usar o radical da própria palavra como dica, sob pena de perder a vez.<br>
       </p>
       <button id="btnFalarRegras" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow-lg mb-4 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300">
         Falar Regras
@@ -144,7 +146,7 @@
   </div>
 
   <!-- TELA PRINCIPAL -->
-  <div id="main-screen" class="w-full max-w-[1600px]  bg-white rounded-xl shadow-2xl relative hidden">
+  <div $1w-full md:aspect-[16/9] max-w-[1600px] bg-white rounded-xl shadow-2xl relative hidden$2>
     <div class="absolute top-0 left-0 w-full p-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <button id="btnEncerrar" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300 hover:scale-105">Encerrar Partida</button>
@@ -154,11 +156,9 @@
       <!-- Tempo Restante mais central e maior -->
       <div class="text-center flex flex-col items-center gap-2">
         <p class="text-xl font-bold">Tempo Restante</p>
-        <!-- Aumentando a fonte do tempo para 6xl -->
         <p id="tempoRestante" class="text-green-600 font-extrabold text-6xl">60</p>
         <div class="flex gap-2">
           <button id="btnIniciarTempo" class="rounded-full w-12 h-12 bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300 hover:scale-105" title="Iniciar Tempo">⏲</button>
-          <!-- Novo botao p/ reiniciar manualmente -->
           <button id="btnResetTempo" class="rounded-full w-12 h-12 bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-300 hover:scale-105" title="Reiniciar Tempo">🔄</button>
         </div>
       </div>
@@ -171,7 +171,6 @@
 
     <div class="absolute bottom-0 left-0 w-full p-4">
       <div class="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow p-4 flex flex-col md:flex-row gap-4">
-        <!-- Mudar label "Jogador 1 (Doador)" p/ "Jogador 1 (Dica)" -->
         <div id="doadorContainer" class="flex-1 bg-blue-100 rounded-xl p-2 flex flex-col gap-2">
           <h2 class="text-xl font-semibold">Jogador 1 (Dica)</h2>
           <div class="flex items-center gap-2">
@@ -185,7 +184,6 @@
           </div>
         </div>
 
-        <!-- Adivinhador -->
         <div id="adivinhadorContainer" class="flex-1 bg-blue-100 rounded-xl p-2 flex flex-col gap-2">
           <h2 class="text-xl font-semibold">Jogador 2 (Adivinhador)</h2>
           <div class="flex items-center gap-2">
@@ -199,10 +197,8 @@
           </div>
         </div>
 
-        <!-- Toggle ver palavra secreta -->
         <div class="flex-1 bg-white rounded-xl p-2 shadow flex flex-col gap-2 justify-center items-center">
           <input type="checkbox" id="togglePalavra" class="hidden" />
-          <!-- Triplicando o tamanho do icone -->
           <label for="togglePalavra" id="labelToggle" class="cursor-pointer bg-gray-300 p-2 rounded shadow flex items-center">
             <span id="eyeIcon" class="text-6xl">🙈</span>
           </label>
@@ -238,11 +234,11 @@
     Additional Test Cases:
     1) Expect error if we have 3 players instead of 4.
     2) Expect to start game with no error if we have 4 players.
-    The user requested not to re-declare 'primeiraTentativa' multiple times.
-    Also we remove re-declaration of 'cameraStream' from inside iniciarJogo.
-    Also removed any second declaration of 'timerInterval' inside iniciarJogo.
 
-    We also fix the injection error by properly modifying exibirTelaPrincipal.
+    Nova feature: banco de 2000 palavras (placeholder); e checagem de radical.
+    Se o jogador usar o radical da palavra, exibe "fora da regra do jogo" e passa a vez.
+
+    FIX: Only a single global declaration of timerInterval (no duplication inside iniciarJogo).
   */
 
   const colorPalette = [
@@ -318,8 +314,15 @@
     return array;
   }
 
+  // Exemplo de 2000 palavras. (Placeholder real teria 2000 strings.)
+  // Aqui apenas exemplificamos.
+  const bigWordSet = [];
+  for(let i=1; i<=2000; i++){
+    bigWordSet.push("palavra"+i);
+  }
+
   const palavrasBanco={
-    "PT-BR":["cachorro","arco-iris","vermelho","futebol","jantar"],
+    "PT-BR": bigWordSet, // substitui as 5 antigas por 2000 no PT-BR
     "PT-PT":["cão","arc-íris","vermelho","futebol","jantar"],
     "EN-US":["dog","rainbow","red","soccer","dinner"],
     "ES":["perro","arcoiris","rojo","futbol","cena"]
@@ -387,12 +390,10 @@
   let mostraPalavra=false;
   let tempoMaximoValue=60;
   let tempoRestante=60;
+  // Global single declaration only.
   let timerInterval=null;
-  let historico=[];
 
-  // ================================
-  // UTILS
-  // ================================
+  let historico=[];
 
   function exibirTelaConfig(){
     configScreen.classList.remove("hidden");
@@ -424,14 +425,10 @@
 
   function falarRegras(){
     const msg=new SpeechSynthesisUtterance();
-    msg.text=`1) Você deve formar duplas de jogadores.\n2) Em cada palavra, a dupla que iniciar tem chance de ganhar 2 pontos se acertar de primeira.\n3) Se errar, as outras duplas ganham 1 ponto se acertarem.\n4) Se pular ou o tempo acabar, passa para a próxima dupla ou palavra.\n5) Ao final, a dupla com mais pontos vence.`;
+    msg.text=`1) Você deve formar duplas de jogadores.\n2) Em cada palavra, a dupla que iniciar tem chance de ganhar 2 pontos se acertar de primeira.\n3) Se errar, as outras duplas ganham 1 ponto se acertarem.\n4) Se pular ou o tempo acabar, passa para a próxima dupla ou palavra.\n5) Ao final, a dupla com mais pontos vence.\n6) Não pode usar o radical da própria palavra como dica.`;
     msg.lang="pt-BR";
     speechSynthesis.speak(msg);
   }
-
-  // ================================
-  // EVENT LISTENERS (Regras)
-  // ================================
 
   btnRegras.addEventListener("click",()=>{
     modalRegras.classList.remove("hidden");
@@ -444,10 +441,6 @@
   });
 
   btnFalarRegras.addEventListener("click",falarRegras);
-
-  // ================================
-  // CAMERA
-  // ================================
 
   btnAbrirCamera.addEventListener("click",async()=>{
     try{
@@ -479,14 +472,9 @@
     tempFotoDataUrl=dataUrl;
   });
 
-  // ================================
-  // JOGADORES
-  // ================================
-
   btnAdicionarJogador.addEventListener("click",adicionarJogador);
 
   function adicionarJogador(){
-    // Verifica maximo 10 jogadores:
     if(jogadores.length >= 10){
       alert("Número máximo de 10 jogadores atingido!");
       return;
@@ -559,10 +547,6 @@
     });
   }
 
-  // ================================
-  // LÓGICA DO JOGO
-  // ================================
-
   function resetTempo(){
     tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
@@ -614,7 +598,6 @@
     atualizarDuplaNaTela();
     exibirTelaPrincipal();
 
-    // Destaque inicial: doadorContainer mais escuro, adivinhador normal
     document.getElementById("doadorContainer").classList.remove("bg-blue-100");
     document.getElementById("doadorContainer").classList.add("bg-blue-300");
     document.getElementById("adivinhadorContainer").classList.remove("bg-blue-300");
@@ -672,8 +655,6 @@
   }
 
   btnIniciarTempo.addEventListener("click",iniciarTimer);
-
-  // Ao clicar no resetTempo, apenas chama resetTempo()
   btnResetTempo.addEventListener("click",()=>{
     resetTempo();
   });
@@ -713,6 +694,7 @@
       launchConfetti();
     });
   }
+
   btnEncerrar.addEventListener("click",encerrarPartida);
 
   function reiniciar(){
@@ -733,21 +715,35 @@
 
   btnReiniciar.addEventListener("click",reiniciar);
 
+  function violaRegraRadical(texto, palavraSecreta){
+    const radical = palavraSecreta.toLowerCase().substring(0,4);
+    return texto.toLowerCase().includes(radical);
+  }
+
   function enviarDica(){
     const dica=campoDica.value.trim();
     if(!dica)return;
+
+    const currentWord = palavrasRodada[indicePalavra];
+    if(violaRegraRadical(dica, currentWord)){
+      alert("Fora da regra do jogo: dica contém radical da própria palavra!");
+      registrarHistorico("ERRO","(Dica violou regra!)", getDoadorName());
+      passarParaProximaDuplaMesmaPalavra();
+      campoDica.value="";
+      return;
+    }
+
     registrarHistorico("DICA",dica,getDoadorName());
     campoDica.value="";
 
-    // Reseta tempo quando jogador escreve uma dica e clica em OK
     resetTempo();
 
-    // Agora, escurece adivinhador (bg-blue-300) e volta doador (bg-blue-100)
     document.getElementById("doadorContainer").classList.remove("bg-blue-300");
     document.getElementById("doadorContainer").classList.add("bg-blue-100");
     document.getElementById("adivinhadorContainer").classList.remove("bg-blue-100");
     document.getElementById("adivinhadorContainer").classList.add("bg-blue-300");
   }
+
   btnEnviarDica.addEventListener("click",enviarDica);
 
   function enviarChute(){
@@ -756,7 +752,14 @@
     const palavraAtual=palavrasRodada[indicePalavra];
     if(!palavraAtual)return;
 
-    // Reseta tempo quando jogador escreve uma resposta e clica em OK
+    if(violaRegraRadical(chute, palavraAtual)){
+      alert("Fora da regra do jogo: chute contém radical da própria palavra!");
+      registrarHistorico("ERRO","(Chute violou regra!)", getAdivinhadorName());
+      passarParaProximaDuplaMesmaPalavra();
+      campoChute.value="";
+      return;
+    }
+
     resetTempo();
 
     if(chute.toLowerCase()===palavraAtual.toLowerCase()){
@@ -775,12 +778,12 @@
     }
     campoChute.value="";
 
-    // volta doador a escuro
     document.getElementById("doadorContainer").classList.remove("bg-blue-100");
     document.getElementById("doadorContainer").classList.add("bg-blue-300");
     document.getElementById("adivinhadorContainer").classList.remove("bg-blue-300");
     document.getElementById("adivinhadorContainer").classList.add("bg-blue-100");
   }
+
   btnEnviarChute.addEventListener("click",enviarChute);
 
   function pularPalavra(){
@@ -809,7 +812,6 @@
     eyeIcon.textContent="🙈";
     atualizarDuplaNaTela();
 
-    // volta doador em destaque, adivinhador normal
     document.getElementById("doadorContainer").classList.remove("bg-blue-100");
     document.getElementById("doadorContainer").classList.add("bg-blue-300");
     document.getElementById("adivinhadorContainer").classList.remove("bg-blue-300");
@@ -829,7 +831,6 @@
     eyeIcon.textContent="🙈";
     atualizarDuplaNaTela();
 
-    // volta doador em destaque, adivinhador normal
     document.getElementById("doadorContainer").classList.remove("bg-blue-100");
     document.getElementById("doadorContainer").classList.add("bg-blue-300");
     document.getElementById("adivinhadorContainer").classList.remove("bg-blue-300");
@@ -900,19 +901,6 @@
     return duplas[duplaAtual][1].name.toUpperCase();
   }
 
-  togglePalavraCheckbox.addEventListener("change",(evt)=>{
-    if(evt.target.checked){
-      palavraSecretaEl.classList.remove("hidden");
-      eyeIcon.textContent="👁️";
-      mostraPalavra=true;
-    }else{
-      palavraSecretaEl.classList.add("hidden");
-      eyeIcon.textContent="🙈";
-      mostraPalavra=false;
-    }
-  });
-
-  // exibir a config ao carregar
   exibirTelaConfig();
 </script>
 
