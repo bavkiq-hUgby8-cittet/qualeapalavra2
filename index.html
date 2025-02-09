@@ -9,10 +9,6 @@
   <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
-    /* Fixed to ensure no duplicate let duplas.
-       We have only a single global let duplas.
-    */
-
     .hover-scale:hover {
       transform: scale(1.2);
       transition: transform 0.2s;
@@ -35,14 +31,14 @@
       transform: scale(1.2);
     }
 
-    /* Button pass icon => we can embed a small icon. */
+    /* Button pass icon => embed small icon. */
     #btnPular {
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    /* Eye icon etc. same as before. */
+    /* Eye icon. */
     #eyeIcon svg {
       width: 32px;
       height: 32px;
@@ -120,7 +116,8 @@
 
   <!-- TELA CONFIG -->
   <div id="config-screen" class="w-full max-w-4xl p-4 md:p-6 shadow-2xl bg-gradient-to-r from-white to-gray-50 rounded-2xl mb-4">
-    <h1 class="text-3xl font-extrabold mb-6 text-center">Configuração Inicial</h1>
+    <h1 class="text-3xl font-extrabold mb-2 text-center">Escolha o Idioma das Palavras</h1>
+    <p class="text-xl font-semibold text-center mb-6">Configuração Inicial</p>
 
     <div class="flex flex-col md:flex-row justify-between mb-4 items-center gap-4">
       <div>
@@ -151,7 +148,19 @@
 
     <div class="mb-4">
       <label class="block mb-1 font-semibold">Tempo Máximo (segundos):</label>
-      <input type="number" id="tempoMaximo" min="5" value="60" class="w-full border border-gray-300 p-3 rounded" />
+      <!-- Instead of type=number, let's do a select with typical intervals -->
+      <select id="$1border border-gray-300 p-1 text-sm rounded w-28">
+        <option value="5">5 seg</option>
+        <option value="10">10 seg</option>
+        <option value="15">15 seg</option>
+        <option value="30">30 seg</option>
+        <option value="45">45 seg</option>
+        <option value="60" selected>60 seg</option>
+        <option value="90">90 seg</option>
+        <option value="120">120 seg</option>
+        <option value="180">180 seg</option>
+        <option value="300">300 seg</option>
+      </select>
     </div>
 
     <div class="mb-4">
@@ -184,6 +193,7 @@
       </select>
     </div>
 
+    <!-- single const for btnIniciar. removing duplicates. -->
     <button id="btnIniciar" class="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded w-full font-bold text-lg shadow-lg">
       Iniciar
     </button>
@@ -294,12 +304,10 @@
 </div>
 
 <script>
-  /* Confetti logic */
   const confettiCanvas = document.getElementById('confettiCanvas');
   const confettiCtx = confettiCanvas.getContext('2d');
   confettiCanvas.width = window.innerWidth;
   confettiCanvas.height = window.innerHeight;
-
   window.addEventListener('resize', () => {
     confettiCanvas.width = window.innerWidth;
     confettiCanvas.height = window.innerHeight;
@@ -321,7 +329,6 @@
     })();
   }
 
-  // Provide shuffle.
   function shuffleArray(array){
     for(let i=array.length-1; i>0; i--){
       const j=Math.floor(Math.random()*(i+1));
@@ -339,14 +346,16 @@
   const mainScreen=document.getElementById('main-screen');
   const endScreen=document.getElementById('end-screen');
 
-  const inputTempoMaximo=document.getElementById('tempoMaximo');
+  const tempoMaximoSelect=document.getElementById('tempoMaximoSelect');
   const inputNomeJogador=document.getElementById('nomeJogador');
   const inputFotoJogador=document.getElementById('fotoJogador');
   const listaJogadoresEl=document.getElementById('listaJogadores');
   const modoDuplasSelect=document.getElementById('modoDuplas');
 
   const btnAdicionarJogador=document.getElementById('btnAdicionarJogador');
+  /* single const for btnIniciar. removing duplicates. */
   const btnIniciar=document.getElementById('btnIniciar');
+
   const btnEncerrar=document.getElementById('btnEncerrar');
   const btnIniciarTempo=document.getElementById('btnIniciarTempo');
   const btnEnviarDica=document.getElementById('btnEnviarDica');
@@ -377,7 +386,6 @@
   const doadorLed=document.getElementById('doadorLed');
   const adivLed=document.getElementById('adivLed');
 
-  // camera
   let cameraStream=null;
   let tempFotoDataUrl='';
 
@@ -386,7 +394,6 @@
   let timerInterval=null;
 
   let jogadores=[];
-  /* Only one global duplas. We'll remove any second let inside functions. */
   let duplas=[];
   let scores=[];
   let palavrasRodada=[];
@@ -539,14 +546,25 @@
 
   btnIniciar.addEventListener('click', iniciarJogo);
 
-  // Only one global let duplas => no second let here.
+  let tempoMaximoValue=60;
+  let tempoRestante=60;
+  let timerInterval=null;
+
+  let jogadores=[];
+  let duplas=[];
+  let scores=[];
+  let palavrasRodada=[];
+  let indicePalavra=0;
+  let duplaAtual=0;
+  let primeiraTentativa=true;
+  let mostraPalavra=false;
+  let historico=[];
 
   function iniciarJogo(){
     if(jogadores.length<4 || (jogadores.length%2!==0)){
       alert('É necessário ao menos 4 jogadores (número par).');
       return;
     }
-    // reassign duplas
     duplas=[];
     const modo=modoDuplasSelect.value;
     let arrCopia=[...jogadores];
@@ -567,7 +585,8 @@
     duplaAtual=0;
     primeiraTentativa=true;
 
-    tempoMaximoValue=parseInt(inputTempoMaximo.value)||60;
+    // now read from tempoMaximoSelect
+    tempoMaximoValue=parseInt(tempoMaximoSelect.value)||60;
     tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
     tempoRestanteEl.classList.remove('text-red-600');
@@ -585,10 +604,12 @@
     exibirTelaPrincipal();
   }
 
+  const btnEncerrar=document.getElementById('btnEncerrar');
+  btnEncerrar.addEventListener('click', encerrarPartida);
+
   const endResultado=document.getElementById('resultado');
   const endPontuacaoFinal=document.getElementById('pontuacaoFinal');
 
-  btnEncerrar.addEventListener('click', encerrarPartida);
   function encerrarPartida(){
     exibirTelaFinal();
     pararTimer();
@@ -625,6 +646,7 @@
     });
   }
 
+  const btnReiniciar=document.getElementById('btnReiniciar');
   btnReiniciar.addEventListener('click', reiniciar);
   function reiniciar(){
     jogadores=[];
@@ -642,7 +664,8 @@
     exibirTelaConfig();
   }
 
-  let historico=[];
+  const historicoAcoes=document.getElementById('historicoAcoes');
+
   function atualizarHistoricoNaTela(){
     historicoAcoes.innerHTML='';
     historico.forEach((h)=>{
@@ -684,6 +707,8 @@
     atualizarHistoricoNaTela();
   }
 
+  const scoreContainer=document.getElementById('scoreContainer');
+
   function renderPontuacao(){
     scoreContainer.innerHTML='';
     duplas.forEach((dupla,idx)=>{
@@ -711,6 +736,14 @@
       scoreContainer.appendChild(row);
     });
   }
+
+  const doadorEl=document.getElementById('doador');
+  const doadorFoto=document.getElementById('doadorFoto');
+  const adivinhadorEl=document.getElementById('adivinhador');
+  const adivinhadorFoto=document.getElementById('adivinhadorFoto');
+  const conteudoPalavraEl=document.getElementById('conteudoPalavra');
+  const doadorLed=document.getElementById('doadorLed');
+  const adivLed=document.getElementById('adivLed');
 
   function getDoadorName(){
     return duplas[duplaAtual][0].name.toUpperCase();
@@ -742,6 +775,8 @@
       adivinhadorFoto.classList.add('hidden');
     }
   }
+
+  const clockHand=document.getElementById('clockHand');
 
   function pararTimer(){
     if(timerInterval){
@@ -863,7 +898,10 @@
     speechSynthesis.speak(msg);
   });
 
-  // Toggle exibir palavra secreta
+  const togglePalavraCheckbox=document.getElementById('togglePalavra');
+  const palavraSecretaEl=document.getElementById('palavraSecreta');
+  const eyeIcon=document.getElementById('eyeIcon');
+
   togglePalavraCheckbox.addEventListener('change',(evt)=>{
     if(evt.target.checked){
       palavraSecretaEl.classList.remove('hidden');
@@ -876,9 +914,16 @@
     }
   });
 
+  const btnIniciarTempo=document.getElementById('btnIniciarTempo');
   btnIniciarTempo.addEventListener('click', iniciarTimer);
+
+  const btnEnviarDica=document.getElementById('btnEnviarDica');
   btnEnviarDica.addEventListener('click', enviarDica);
+
+  const btnEnviarChute=document.getElementById('btnEnviarChute');
   btnEnviarChute.addEventListener('click', enviarChute);
+
+  const btnPular=document.getElementById('btnPular');
   btnPular.addEventListener('click', pularPalavra);
 
   // Start
