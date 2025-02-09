@@ -144,7 +144,7 @@
   </div>
 
   <!-- TELA PRINCIPAL -->
-  <div id="main-screen" class="w-full max-w-[1600px] aspect-video bg-white rounded-xl shadow-2xl relative hidden">
+  <div id="main-screen" class="w-full max-w-[1600px]  bg-white rounded-xl shadow-2xl relative hidden">
     <div class="absolute top-0 left-0 w-full p-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <button id="btnEncerrar" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300 hover:scale-105">Encerrar Partida</button>
@@ -401,11 +401,12 @@
     endScreen.classList.add("hidden");
   }
 
-  function exibirTelaPrincipal(){
-    configScreen.classList.add("hidden");
-    mainScreen.classList.remove("hidden");
-    endScreen.classList.add("hidden");
-  }
+  function $1
+// Ao ir para a tela principal, primeiro mostro a palavra secreta para o doador ver.
+// Em seguida, doador começa a dar a dica normalmente.
+togglePalavraCheckbox.checked = true;
+palavraSecretaEl.classList.remove("hidden");
+eyeIcon.textContent="👁️";
 
   function exibirTelaFinal(){
     configScreen.classList.add("hidden");
