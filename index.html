@@ -19,6 +19,25 @@
       font-weight: bold;
       color: #ff0000;
     }
+    /* Animacao simples para o "acerto" (fotos crescendo e sumindo) */
+    @keyframes growAndFade {
+      0% {
+        transform: scale(0.1);
+        opacity: 0;
+      }
+      20% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      80% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1.4);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body class="w-screen min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-2 md:p-6 overflow-x-hidden">
@@ -47,8 +66,11 @@
 
   <!-- Tela de Configuração -->
   <div id="config-screen" class="w-full max-w-4xl p-4 md:p-6 shadow-2xl bg-gradient-to-r from-white to-gray-50 rounded-2xl mb-4">
-    <h1 class="text-4xl font-extrabold mb-2 text-center">QUAL É A PALAVRA?</h1>
-    <h2 class="text-2xl font-extrabold mb-6 text-center">Configuração Inicial</h2>
+    <!-- CAIXA ATRAS DA FRASE "QUAL É A PALAVRA?" -->
+    <div class="bg-blue-200 p-4 rounded-xl shadow-md">
+      <h1 class="text-4xl font-extrabold mb-2 text-center">QUAL É A PALAVRA?</h1>
+    </div>
+    <h2 class="text-2xl font-extrabold mb-6 text-center mt-4">Configuração Inicial</h2>
 
     <div class="flex flex-col md:flex-row justify-between mb-4 items-center gap-4">
       <div>
@@ -141,61 +163,58 @@
       </div>
     </div>
 
+    <!--
+      UNIR "DUPLA ATUAL" COM "DICA" E "CHUTE" EM UMA MESMA LINHA.
+      Colocamos ambos os inputs (Dica e Chute) e as fotos, etc., tudo num só container.
+      "onde o jogador da vez é criada uma caixa de seleção azul claro que sinaliza que é vez"
+      Vamos supor que "doador" é o jogador que digita a dica, e "adivinhador" digita o chute.
+    -->
     <div class="absolute bottom-0 left-0 w-full p-4">
-      <div class="flex flex-col md:flex-row gap-4 justify-between">
-        <div class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/2">
-          <h2 class="text-xl font-semibold mb-2">Dupla Atual</h2>
-
-          <div class="mb-1">
-            <p class="text-sm text-gray-500 font-semibold uppercase">Jogador 1, dê uma dica</p>
+      <div class="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow p-4 flex flex-col md:flex-row gap-4">
+        <!-- Doador -->
+        <div class="flex-1 bg-blue-100 rounded-xl p-2 flex flex-col gap-2">
+          <h2 class="text-xl font-semibold">Jogador 1 (Doador)</h2>
+          <div class="flex items-center gap-2">
+            <img id="doadorFoto" src="" alt="Foto do Doador" class="w-10 h-10 object-cover rounded-full hidden"/>
+            <p class="text-lg font-bold text-blue-700"><span id="doador" class="bg-white rounded px-2 py-1"></span></p>
           </div>
-          <div class="flex items-center gap-2 mb-4">
-            <img id="doadorFoto" src="" alt="Foto do Doador" class="w-12 h-12 object-cover rounded-full hidden"/>
-            <p class="text-lg font-bold text-blue-700">
-              <span id="doador" class="bg-white rounded px-2 py-1"></span>
-            </p>
-          </div>
-
-          <div class="mb-1">
-            <p class="text-sm text-gray-500 font-semibold uppercase">Jogador 2, qual a palavra?</p>
-          </div>
-          <div class="flex items-center gap-2 mb-2">
-            <img id="adivinhadorFoto" src="" alt="Foto do Adivinhador" class="w-12 h-12 object-cover rounded-full hidden"/>
-            <p class="text-lg font-bold text-green-700">
-              <span id="adivinhador" class="bg-white rounded px-2 py-1"></span>
-            </p>
-          </div>
-
-          <div class="mt-2 flex items-center gap-2">
-            <input type="checkbox" id="togglePalavra" class="hidden" />
-            <label for="togglePalavra" id="labelToggle" class="cursor-pointer bg-gray-300 p-2 rounded shadow flex items-center">
-              <span id="eyeIcon" class="text-2xl">🙈</span>
-            </label>
-            <span id="palavraSecreta" class="ml-2 hidden bg-white px-2 py-1 rounded shadow flex items-center gap-2">
-              <span class="text-2xl font-extrabold uppercase text-red-600">Palavra Secreta:</span>
-              <span id="conteudoPalavra" class="text-xl font-bold uppercase text-red-500"></span>
-            </span>
+          <!-- Campo Dica junto -->
+          <label class="block font-bold text-sm">Dica:</label>
+          <div class="flex items-center gap-2">
+            <input type="text" id="campoDica" class="border border-gray-300 p-2 rounded w-full bg-white" placeholder="Dê sua dica..."/>
+            <button id="btnEnviarDica" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300">OK</button>
           </div>
         </div>
 
-        <div class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/2">
-          <div class="mb-4">
-            <label class="block font-bold mb-2">Dica para o Adivinhador:</label>
-            <div class="flex gap-2">
-              <input type="text" id="campoDica" class="border border-gray-300 p-2 rounded w-full bg-white" />
-              <button id="btnEnviarDica" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300">OK</button>
-            </div>
+        <!-- Adivinhador -->
+        <div class="flex-1 bg-blue-100 rounded-xl p-2 flex flex-col gap-2">
+          <h2 class="text-xl font-semibold">Jogador 2 (Adivinhador)</h2>
+          <div class="flex items-center gap-2">
+            <img id="adivinhadorFoto" src="" alt="Foto do Adivinhador" class="w-10 h-10 object-cover rounded-full hidden"/>
+            <p class="text-lg font-bold text-green-700"><span id="adivinhador" class="bg-white rounded px-2 py-1"></span></p>
           </div>
-          <div>
-            <label class="block font-bold mb-2">Chute do Adivinhador:</label>
-            <div class="flex gap-2">
-              <input type="text" id="campoChute" class="border border-gray-300 p-2 rounded w-full bg-white" />
-              <button id="btnEnviarChute" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300">OK</button>
-            </div>
+          <!-- Campo Chute junto -->
+          <label class="block font-bold text-sm">Chute:</label>
+          <div class="flex items-center gap-2">
+            <input type="text" id="campoChute" class="border border-gray-300 p-2 rounded w-full bg-white" placeholder="Qual a palavra?"/>
+            <button id="btnEnviarChute" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300">OK</button>
           </div>
+        </div>
+
+        <!-- Toggle ver palavra secreta -->
+        <div class="flex-1 bg-white rounded-xl p-2 shadow flex flex-col gap-2 justify-center items-center">
+          <input type="checkbox" id="togglePalavra" class="hidden" />
+          <label for="togglePalavra" id="labelToggle" class="cursor-pointer bg-gray-300 p-2 rounded shadow flex items-center">
+            <span id="eyeIcon" class="text-2xl">🙈</span>
+          </label>
+          <span id="palavraSecreta" class="hidden bg-white px-2 py-1 rounded shadow flex flex-col items-center gap-1">
+            <span class="text-2xl font-extrabold uppercase text-red-600">Palavra Secreta:</span>
+            <span id="conteudoPalavra" class="text-xl font-bold uppercase text-red-500"></span>
+          </span>
         </div>
       </div>
 
+      <!-- Histórico + Extra Info -->
       <div class="mt-4 bg-gradient-to-br from-blue-50 to-white p-4 rounded-2xl shadow">
         <h3 class="text-xl font-semibold mb-2">Histórico</h3>
         <div id="historicoAcoes" class="h-40 overflow-y-auto text-sm border border-gray-300 p-2 rounded bg-white"></div>
@@ -217,8 +236,10 @@
 </div>
 
 <script>
-  // Verifique se está em localhost ou usando https para a câmera funcionar.
-  // Sempre abra o console para verificar possíveis erros.
+  // We only declare let scores once globally.
+  // Additional Test Cases:
+  // 1) Expect error if we have 3 players instead of 4.
+  // 2) Expect to start game with no error if we have 4 players.
 
   const colorPalette = [
     "bg-red-200 text-red-800",
@@ -257,299 +278,316 @@
     })();
   }
 
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+  function showAcertoAnimation(duplaIndex){
+    const [player1, player2] = duplas[duplaIndex];
+    const floatDiv = document.createElement("div");
+    floatDiv.className = "absolute top-1/2 left-1/2 flex items-center justify-center gap-4 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-4 shadow-2xl animate-[growAndFade_2s_ease-in-out_forwards]";
+
+    if(player1.photo){
+      const img1 = document.createElement("img");
+      img1.src = player1.photo;
+      img1.alt = "Foto Jogador 1";
+      img1.className = "w-20 h-20 object-cover rounded-full";
+      floatDiv.appendChild(img1);
+    }
+    if(player2.photo){
+      const img2 = document.createElement("img");
+      img2.src = player2.photo;
+      img2.alt = "Foto Jogador 2";
+      img2.className = "w-20 h-20 object-cover rounded-full";
+      floatDiv.appendChild(img2);
+    }
+
+    document.body.appendChild(floatDiv);
+    setTimeout(()=>{
+      if(floatDiv.parentNode){
+        floatDiv.parentNode.removeChild(floatDiv);
+      }
+    },2000);
+  }
+
+  function shuffleArray(array){
+    for(let i=array.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [array[i],array[j]]=[array[j],array[i]];
     }
     return array;
   }
 
-  const palavrasBanco = {
-    "PT-BR": ["cachorro", "arco-iris", "vermelho", "futebol", "jantar"],
-    "PT-PT": ["cão", "arc-íris", "vermelho", "futebol", "jantar"],
-    "EN-US": ["dog", "rainbow", "red", "soccer", "dinner"],
-    "ES": ["perro", "arcoiris", "rojo", "futbol", "cena"]
+  const palavrasBanco={
+    "PT-BR":["cachorro","arco-iris","vermelho","futebol","jantar"],
+    "PT-PT":["cão","arc-íris","vermelho","futebol","jantar"],
+    "EN-US":["dog","rainbow","red","soccer","dinner"],
+    "ES":["perro","arcoiris","rojo","futbol","cena"]
   };
 
-  const modalRegras = document.getElementById("modalRegras");
-  const btnRegras = document.getElementById("btnRegras");
-  const btnFecharModal = document.getElementById("btnFecharModal");
-  const btnFalarRegras = document.getElementById("btnFalarRegras");
+  const modalRegras=document.getElementById("modalRegras");
+  const btnRegras=document.getElementById("btnRegras");
+  const btnFecharModal=document.getElementById("btnFecharModal");
+  const btnFalarRegras=document.getElementById("btnFalarRegras");
 
-  const configScreen = document.getElementById("config-screen");
-  const mainScreen = document.getElementById("main-screen");
-  const endScreen = document.getElementById("end-screen");
+  const configScreen=document.getElementById("config-screen");
+  const mainScreen=document.getElementById("main-screen");
+  const endScreen=document.getElementById("end-screen");
 
-  const inputTempoMaximo = document.getElementById("tempoMaximo");
-  const inputNomeJogador = document.getElementById("nomeJogador");
-  const inputFotoJogador = document.getElementById("fotoJogador");
-  const listaJogadoresEl = document.getElementById("listaJogadores");
-  const modoDuplasSelect = document.getElementById("modoDuplas");
+  const inputTempoMaximo=document.getElementById("tempoMaximo");
+  const inputNomeJogador=document.getElementById("nomeJogador");
+  const inputFotoJogador=document.getElementById("fotoJogador");
+  const listaJogadoresEl=document.getElementById("listaJogadores");
+  const modoDuplasSelect=document.getElementById("modoDuplas");
 
-  // Camera
-  const btnAbrirCamera = document.getElementById("btnAbrirCamera");
-  const btnCapturarFoto = document.getElementById("btnCapturarFoto");
-  const videoCamera = document.getElementById("videoCamera");
-  const canvasFoto = document.getElementById("canvasFoto");
-  let cameraStream = null;
-  let tempFotoDataUrl = "";
+  const btnAbrirCamera=document.getElementById("btnAbrirCamera");
+  const btnCapturarFoto=document.getElementById("btnCapturarFoto");
+  const videoCamera=document.getElementById("videoCamera");
+  const canvasFoto=document.getElementById("canvasFoto");
+  let cameraStream=null;
+  let tempFotoDataUrl="";
 
-  // Botoes Jogo
-  const btnAdicionarJogador = document.getElementById("btnAdicionarJogador");
-  const btnIniciar = document.getElementById("btnIniciar");
-  const btnEncerrar = document.getElementById("btnEncerrar");
-  const btnIniciarTempo = document.getElementById("btnIniciarTempo");
-  const btnEnviarDica = document.getElementById("btnEnviarDica");
-  const btnEnviarChute = document.getElementById("btnEnviarChute");
-  const btnPular = document.getElementById("btnPular");
-  const btnReiniciar = document.getElementById("btnReiniciar");
+  const btnAdicionarJogador=document.getElementById("btnAdicionarJogador");
+  const btnIniciar=document.getElementById("btnIniciar");
+  const btnEncerrar=document.getElementById("btnEncerrar");
+  const btnIniciarTempo=document.getElementById("btnIniciarTempo");
+  const btnEnviarDica=document.getElementById("btnEnviarDica");
+  const btnEnviarChute=document.getElementById("btnEnviarChute");
+  const btnPular=document.getElementById("btnPular");
+  const btnReiniciar=document.getElementById("btnReiniciar");
 
-  // Elementos Jogo
-  const scoreContainer = document.getElementById("scoreContainer");
-  const doadorEl = document.getElementById("doador");
-  const doadorFoto = document.getElementById("doadorFoto");
-  const adivinhadorEl = document.getElementById("adivinhador");
-  const adivinhadorFoto = document.getElementById("adivinhadorFoto");
-  const palavraSecretaEl = document.getElementById("palavraSecreta");
-  const conteudoPalavraEl = document.getElementById("conteudoPalavra");
-  const tempoRestanteEl = document.getElementById("tempoRestante");
-  const campoDica = document.getElementById("campoDica");
-  const campoChute = document.getElementById("campoChute");
-  const historicoAcoes = document.getElementById("historicoAcoes");
-  const endResultado = document.getElementById("resultado");
-  const endPontuacaoFinal = document.getElementById("pontuacaoFinal");
-  const togglePalavraCheckbox = document.getElementById("togglePalavra");
-  const eyeIcon = document.getElementById("eyeIcon");
+  const scoreContainer=document.getElementById("scoreContainer");
+  const doadorEl=document.getElementById("doador");
+  const doadorFoto=document.getElementById("doadorFoto");
+  const adivinhadorEl=document.getElementById("adivinhador");
+  const adivinhadorFoto=document.getElementById("adivinhadorFoto");
+  const palavraSecretaEl=document.getElementById("palavraSecreta");
+  const conteudoPalavraEl=document.getElementById("conteudoPalavra");
+  const tempoRestanteEl=document.getElementById("tempoRestante");
+  const campoDica=document.getElementById("campoDica");
+  const campoChute=document.getElementById("campoChute");
+  const historicoAcoes=document.getElementById("historicoAcoes");
+  const endResultado=document.getElementById("resultado");
+  const endPontuacaoFinal=document.getElementById("pontuacaoFinal");
+  const togglePalavraCheckbox=document.getElementById("togglePalavra");
+  const eyeIcon=document.getElementById("eyeIcon");
 
-  const secretCenter = document.getElementById("secretCenter");
-  const palavraSecretaCentro = document.getElementById("palavraSecretaCentro");
+  const secretCenter=document.getElementById("secretCenter");
+  const palavraSecretaCentro=document.getElementById("palavraSecretaCentro");
 
-  let jogadores = [];
-  // Removed redundant 'let duplas = []' here, we only declare once below.
+  let jogadores=[];
+  let duplas=[];
+  // We keep one global scores array.
+  let scores=[];
+  let palavrasRodada=[];
+  let indicePalavra=0;
+  let duplaAtual=0;
+  let primeiraTentativa=true;
+  let mostraPalavra=false;
+  let tempoMaximoValue=60;
+  let tempoRestante=60;
+  let timerInterval=null;
+  let historico=[];
 
-  let duplas = [];
-  let scores = [];
-  let palavrasRodada = [];
-  let indicePalavra = 0;
-  let duplaAtual = 0;
-  let primeiraTentativa = true;
-  let mostraPalavra = false;
-  let tempoMaximoValue = 60;
-  let tempoRestante = 60;
-  let timerInterval = null;
-  let historico = [];
-
-  // Suppose we do not have official test code, let's do a quick test scenario.
-  // e.g. Testing scenario: 4 players added, start game with PT-BR, see if the game runs.
-  // This code is just reference. We can extend real tests as needed.
-
-  function exibirTelaConfig() {
+  function exibirTelaConfig(){
     configScreen.classList.remove("hidden");
     mainScreen.classList.add("hidden");
     endScreen.classList.add("hidden");
   }
 
-  function exibirTelaPrincipal() {
+  function exibirTelaPrincipal(){
     configScreen.classList.add("hidden");
     mainScreen.classList.remove("hidden");
     endScreen.classList.add("hidden");
   }
 
-  function exibirTelaFinal() {
+  function exibirTelaFinal(){
     configScreen.classList.add("hidden");
     mainScreen.classList.add("hidden");
     endScreen.classList.remove("hidden");
   }
 
-  function getSelectedIdioma() {
-    const checked = document.querySelector("input[name=idiomaRadio]:checked");
-    return checked ? checked.value : "PT-BR";
+  function getSelectedIdioma(){
+    const checked=document.querySelector("input[name=idiomaRadio]:checked");
+    return checked?checked.value:"PT-BR";
   }
 
-  function falarRegras() {
-    const msg = new SpeechSynthesisUtterance();
-    msg.text = `1) Você deve formar duplas de jogadores.\n2) Em cada palavra, a dupla que iniciar tem chance de ganhar 2 pontos se acertar de primeira.\n3) Se errar, as outras duplas ganham 1 ponto se acertarem.\n4) Se pular ou o tempo acabar, passa para a próxima dupla ou palavra.\n5) Ao final, a dupla com mais pontos vence.`;
-    msg.lang = "pt-BR";
+  function falarRegras(){
+    const msg=new SpeechSynthesisUtterance();
+    msg.text=`1) Você deve formar duplas de jogadores.\n2) Em cada palavra, a dupla que iniciar tem chance de ganhar 2 pontos se acertar de primeira.\n3) Se errar, as outras duplas ganham 1 ponto se acertarem.\n4) Se pular ou o tempo acabar, passa para a próxima dupla ou palavra.\n5) Ao final, a dupla com mais pontos vence.`;
+    msg.lang="pt-BR";
     speechSynthesis.speak(msg);
   }
 
-  btnRegras.addEventListener("click", () => {
+  btnRegras.addEventListener("click",()=>{
     modalRegras.classList.remove("hidden");
     modalRegras.classList.add("flex");
   });
 
-  btnFecharModal.addEventListener("click", () => {
+  btnFecharModal.addEventListener("click",()=>{
     modalRegras.classList.add("hidden");
     modalRegras.classList.remove("flex");
   });
 
-  btnFalarRegras.addEventListener("click", falarRegras);
+  btnFalarRegras.addEventListener("click",falarRegras);
 
-  // Camera
-  btnAbrirCamera.addEventListener("click", async () => {
-    try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoCamera.srcObject = cameraStream;
+  btnAbrirCamera.addEventListener("click",async()=>{
+    try{
+      cameraStream=await navigator.mediaDevices.getUserMedia({video:true});
+      videoCamera.srcObject=cameraStream;
       videoCamera.classList.remove("hidden");
       btnCapturarFoto.classList.remove("hidden");
       canvasFoto.classList.add("hidden");
-    } catch (err) {
-      alert("Não foi possível acessar a câmera: " + err);
+    }catch(err){
+      alert("Não foi possível acessar a câmera: "+err);
     }
   });
 
-  btnCapturarFoto.addEventListener("click", () => {
-    if (!cameraStream) return;
+  btnCapturarFoto.addEventListener("click",()=>{
+    if(!cameraStream)return;
     canvasFoto.classList.remove("hidden");
-    canvasFoto.width = videoCamera.videoWidth;
-    canvasFoto.height = videoCamera.videoHeight;
-    const ctx = canvasFoto.getContext("2d");
-    ctx.drawImage(videoCamera, 0, 0, canvasFoto.width, canvasFoto.height);
-    let dataUrl = canvasFoto.toDataURL("image/png");
+    canvasFoto.width=videoCamera.videoWidth;
+    canvasFoto.height=videoCamera.videoHeight;
+    const ctx=canvasFoto.getContext("2d");
+    ctx.drawImage(videoCamera,0,0,canvasFoto.width,canvasFoto.height);
+    let dataUrl=canvasFoto.toDataURL("image/png");
 
     videoCamera.classList.add("hidden");
     btnCapturarFoto.classList.add("hidden");
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
-      cameraStream = null;
+    if(cameraStream){
+      cameraStream.getTracks().forEach(track=>track.stop());
+      cameraStream=null;
     }
-    tempFotoDataUrl = dataUrl;
+    tempFotoDataUrl=dataUrl;
   });
 
-  function adicionarJogador() {
-    let nomeDigitado = inputNomeJogador.value.trim() || `Convidado #${jogadores.length + 1}`;
-    let colorClass = colorPalette[jogadores.length % colorPalette.length];
-    let fotoDataUrl = "";
+  function adicionarJogador(){
+    let nomeDigitado=inputNomeJogador.value.trim()||`Convidado #${jogadores.length+1}`;
+    let colorClass=colorPalette[jogadores.length%colorPalette.length];
+    let fotoDataUrl="";
 
-    const file = inputFotoJogador.files[0];
-    if (tempFotoDataUrl) {
-      fotoDataUrl = tempFotoDataUrl;
-      tempFotoDataUrl = "";
-    } else if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        fotoDataUrl = e.target.result;
-        pushJogador(nomeDigitado, colorClass, fotoDataUrl);
-      };
+    const file=inputFotoJogador.files[0];
+    if(tempFotoDataUrl){
+      fotoDataUrl=tempFotoDataUrl;
+      tempFotoDataUrl="";
+    }else if(file){
+      const reader=new FileReader();
+      reader.onload=(e)=>{
+        fotoDataUrl=e.target.result;
+        pushJogador(nomeDigitado,colorClass,fotoDataUrl);
+     };
       reader.readAsDataURL(file);
       return;
     }
 
-    pushJogador(nomeDigitado, colorClass, fotoDataUrl);
+    pushJogador(nomeDigitado,colorClass,fotoDataUrl);
   }
 
-  function pushJogador(name, colorClass, photo) {
-    const newPlayer = { name, color: colorClass, photo };
+  function pushJogador(name,colorClass,photo){
+    const newPlayer={name,color:colorClass,photo};
     jogadores.push(newPlayer);
-    inputNomeJogador.value = "";
-    fotoJogador.value = "";
+    inputNomeJogador.value="";
+    fotoJogador.value="";
     renderJogadores();
   }
 
-  function removerJogador(idx) {
-    jogadores.splice(idx, 1);
+  function removerJogador(idx){
+    jogadores.splice(idx,1);
     renderJogadores();
   }
 
-  function renderJogadores() {
-    listaJogadoresEl.innerHTML = "";
-    jogadores.forEach((player, idx) => {
-      const div = document.createElement("div");
-      div.className = `${player.color} p-2 uppercase rounded mb-1 shadow-sm font-bold flex items-center gap-2 justify-between`;
-      const leftPart = document.createElement("div");
-      leftPart.className = "flex items-center gap-2";
+  function renderJogadores(){
+    listaJogadoresEl.innerHTML="";
+    jogadores.forEach((player,idx)=>{
+      const div=document.createElement("div");
+      div.className=`${player.color} p-2 uppercase rounded mb-1 shadow-sm font-bold flex items-center gap-2 justify-between`;
+      const leftPart=document.createElement("div");
+      leftPart.className="flex items-center gap-2";
 
-      if (player.photo) {
-        const imgEl = document.createElement("img");
-        imgEl.src = player.photo;
-        imgEl.alt = "Foto";
-        imgEl.className = "w-8 h-8 object-cover rounded-full";
+      if(player.photo){
+        const imgEl=document.createElement("img");
+        imgEl.src=player.photo;
+        imgEl.alt="Foto";
+        imgEl.className="w-8 h-8 object-cover rounded-full";
         leftPart.appendChild(imgEl);
       }
 
-      const spanNome = document.createElement("span");
-      spanNome.textContent = player.name;
+      const spanNome=document.createElement("span");
+      spanNome.textContent=player.name;
       leftPart.appendChild(spanNome);
       div.appendChild(leftPart);
 
-      const btnRem = document.createElement("button");
-      btnRem.textContent = "X";
-      btnRem.className = "bg-red-400 hover:bg-red-500 text-white px-2 py-1 rounded font-bold";
-      btnRem.addEventListener("click", () => {
+      const btnRem=document.createElement("button");
+      btnRem.textContent="X";
+      btnRem.className="bg-red-400 hover:bg-red-500 text-white px-2 py-1 rounded font-bold";
+      btnRem.addEventListener("click",()=>{
         removerJogador(idx);
-      });
+     });
       div.appendChild(btnRem);
 
       listaJogadoresEl.appendChild(div);
     });
   }
 
-  btnAdicionarJogador.addEventListener("click", adicionarJogador);
+  btnAdicionarJogador.addEventListener("click",adicionarJogador);
 
-  // Single declaration of duplas, scores, etc.
-  let jogadores2 = []; // if needed
-
-  function iniciarJogo() {
-    if (jogadores.length < 4 || jogadores.length % 2 !== 0) {
-      alert("É necessário ao menos 4 jogadores (número par)." );
+  // Only single global "scores".
+  function iniciarJogo(){
+    if(jogadores.length<4||jogadores.length%2!==0){
+      alert("É necessário ao menos 4 jogadores (número par).");
       return;
     }
-    duplas = [];
-    const modo = modoDuplasSelect.value;
-    let arrCopia = [...jogadores];
-    if (modo !== "manual") {
+    duplas=[];
+    const modo=modoDuplasSelect.value;
+    let arrCopia=[...jogadores];
+    if(modo!=="manual"){
       shuffleArray(arrCopia);
     }
 
-    for (let i = 0; i < arrCopia.length; i += 2) {
-      duplas.push([arrCopia[i], arrCopia[i + 1]]);
+    for(let i=0;i<arrCopia.length;i+=2){
+      duplas.push([arrCopia[i],arrCopia[i+1]]);
     }
 
-    scores = new Array(duplas.length).fill(0);
-    const idioma = getSelectedIdioma();
-    let listaPalavrasBrutas = Array.from(new Set(palavrasBanco[idioma] || []));
-    shuffleArray(listaPalavrasBrutas);
-    palavrasRodada = listaPalavrasBrutas.slice(0, 5);
+    scores=new Array(duplas.length).fill(0); // no let here
 
-    indicePalavra = 0;
-    duplaAtual = 0;
-    primeiraTentativa = true;
-    tempoMaximoValue = parseInt(inputTempoMaximo.value) || 60;
-    tempoRestante = tempoMaximoValue;
-    tempoRestanteEl.textContent = tempoRestante;
+    const idioma=getSelectedIdioma();
+    let listaPalavrasBrutas=Array.from(new Set(palavrasBanco[idioma]||[]));
+    shuffleArray(listaPalavrasBrutas);
+    palavrasRodada=listaPalavrasBrutas.slice(0,5);
+
+    indicePalavra=0;
+    duplaAtual=0;
+    primeiraTentativa=true;
+    tempoMaximoValue=parseInt(inputTempoMaximo.value)||60;
+    tempoRestante=tempoMaximoValue;
+    tempoRestanteEl.textContent=tempoRestante;
     tempoRestanteEl.classList.remove("text-red-600");
     tempoRestanteEl.classList.add("text-green-600");
-    mostraPalavra = false;
-    togglePalavraCheckbox.checked = false;
+    mostraPalavra=false;
+    togglePalavraCheckbox.checked=false;
     palavraSecretaEl.classList.add("hidden");
-    eyeIcon.textContent = "🙈";
-    historico = [];
+    eyeIcon.textContent="🙈";
+    historico=[];
     atualizarHistoricoNaTela();
     renderPontuacao();
     atualizarDuplaNaTela();
     exibirTelaPrincipal();
   }
+  btnIniciar.addEventListener("click",iniciarJogo);
 
-  btnIniciar.addEventListener("click", iniciarJogo);
+  function atualizarDuplaNaTela(){
+    const doadorPlayer=duplas[duplaAtual][0];
+    const adivPlayer=duplas[duplaAtual][1];
+    doadorEl.textContent=doadorPlayer.name.toUpperCase();
+    adivinhadorEl.textContent=adivPlayer.name.toUpperCase();
+    conteudoPalavraEl.textContent=palavrasRodada[indicePalavra]||"";
 
-  function atualizarDuplaNaTela() {
-    const doadorPlayer = duplas[duplaAtual][0];
-    const adivPlayer = duplas[duplaAtual][1];
-    doadorEl.textContent = doadorPlayer.name.toUpperCase();
-    adivinhadorEl.textContent = adivPlayer.name.toUpperCase();
-    conteudoPalavraEl.textContent = palavrasRodada[indicePalavra] || "";
-
-    if (doadorPlayer.photo) {
-      doadorFoto.src = doadorPlayer.photo;
+    if(doadorPlayer.photo){
+      doadorFoto.src=doadorPlayer.photo;
       doadorFoto.classList.remove("hidden");
-    } else {
+    }else{
       doadorFoto.classList.add("hidden");
     }
-    if (adivPlayer.photo) {
-      adivinhadorFoto.src = adivPlayer.photo;
+    if(adivPlayer.photo){
+      adivinhadorFoto.src=adivPlayer.photo;
       adivinhadorFoto.classList.remove("hidden");
-    } else {
+    }else{
       adivinhadorFoto.classList.add("hidden");
     }
   }
@@ -557,60 +595,59 @@
   function pararTimer(){
     if(timerInterval){
       clearInterval(timerInterval);
-      timerInterval = null;
+      timerInterval=null;
     }
   }
 
   function iniciarTimer(){
     pararTimer();
-    timerInterval = setInterval(()=>{
+    timerInterval=setInterval(()=>{
       tempoRestante--;
-      tempoRestanteEl.textContent = tempoRestante;
-      if(tempoRestante <= 10){
+      tempoRestanteEl.textContent=tempoRestante;
+      if(tempoRestante<=10){
         tempoRestanteEl.classList.remove("text-green-600");
         tempoRestanteEl.classList.add("text-red-600");
-      } else {
+      }else{
         tempoRestanteEl.classList.remove("text-red-600");
         tempoRestanteEl.classList.add("text-green-600");
       }
-      if(tempoRestante <= 0){
+      if(tempoRestante<=0){
         pararTimer();
-        registrarHistorico("PULOU", "Tempo Esgotado.", getAdivinhadorName());
+        registrarHistorico("PULOU","Tempo Esgotado.",getAdivinhadorName());
         passarParaProximaDuplaMesmaPalavra();
       }
     },1000);
   }
-
-  btnIniciarTempo.addEventListener("click", iniciarTimer);
+  btnIniciarTempo.addEventListener("click",iniciarTimer);
 
   function encerrarPartida(){
     exibirTelaFinal();
     pararTimer();
-    let maiorPontuacao = Math.max(...scores);
-    let indicesMax = scores.map((val,idx)=>(val===maiorPontuacao? idx : -1)).filter(i=> i>=0);
-    if(indicesMax.length > 1){
-      endResultado.textContent = "Temos um empate!";
-    } else {
-      const campeaoArr = duplas[indicesMax[0]];
-      const campeao = campeaoArr[0].name + " & " + campeaoArr[1].name;
-      endResultado.textContent = "Dupla Vencedora: "+campeao;
+    let maiorPontuacao=Math.max(...scores);
+    let indicesMax=scores.map((val,idx)=>(val===maiorPontuacao?idx:-1)).filter(i=>i>=0);
+    if(indicesMax.length>1){
+      endResultado.textContent="Temos um empate!";
+    }else{
+      const campeaoArr=duplas[indicesMax[0]];
+      const campeao=campeaoArr[0].name+" & "+campeaoArr[1].name;
+      endResultado.textContent="Dupla Vencedora: "+campeao;
     }
-    endPontuacaoFinal.innerHTML = "<h2 class='font-semibold'>Pontuação Final</h2>";
+    endPontuacaoFinal.innerHTML="<h2 class='font-semibold'>Pontuação Final</h2>";
     duplas.forEach((dupla,idx)=>{
-      let nomes = dupla[0].name.toUpperCase()+" & "+dupla[1].name.toUpperCase();
-      const div = document.createElement("div");
-      div.className = "flex items-center gap-2 my-2";
+      let nomes=dupla[0].name.toUpperCase()+" & "+dupla[1].name.toUpperCase();
+      const div=document.createElement("div");
+      div.className="flex items-center gap-2 my-2";
       dupla.forEach((p)=>{
         if(p.photo){
-          const img = document.createElement("img");
-          img.src = p.photo;
-          img.alt = "Foto";
-          img.className = "w-8 h-8 object-cover rounded-full";
+          const img=document.createElement("img");
+          img.src=p.photo;
+          img.alt="Foto";
+          img.className="w-8 h-8 object-cover rounded-full";
           div.appendChild(img);
         }
       });
-      const txt = document.createElement("span");
-      txt.textContent = nomes+": "+scores[idx]+" pts";
+      const txt=document.createElement("span");
+      txt.textContent=nomes+": "+scores[idx]+" pts";
       div.appendChild(txt);
       endPontuacaoFinal.appendChild(div);
     });
@@ -618,7 +655,7 @@
       launchConfetti();
     });
   }
-  btnEncerrar.addEventListener("click", encerrarPartida);
+  btnEncerrar.addEventListener("click",encerrarPartida);
 
   function reiniciar(){
     jogadores=[];
@@ -635,43 +672,45 @@
     renderJogadores();
     exibirTelaConfig();
   }
-  btnReiniciar.addEventListener("click", reiniciar);
+  btnReiniciar.addEventListener("click",reiniciar);
 
   function enviarDica(){
-    const dica = campoDica.value.trim();
+    const dica=campoDica.value.trim();
     if(!dica)return;
-    registrarHistorico("DICA", dica, getDoadorName());
+    registrarHistorico("DICA",dica,getDoadorName());
     campoDica.value="";
   }
-  btnEnviarDica.addEventListener("click", enviarDica);
+  btnEnviarDica.addEventListener("click",enviarDica);
 
   function enviarChute(){
-    const chute = campoChute.value.trim();
+    const chute=campoChute.value.trim();
     if(!chute)return;
-    const palavraAtual = palavrasRodada[indicePalavra];
+    const palavraAtual=palavrasRodada[indicePalavra];
     if(!palavraAtual)return;
     if(chute.toLowerCase()===palavraAtual.toLowerCase()){
-      const adiv = getAdivinhadorName();
-      const pontos = primeiraTentativa? 2 : 1;
-      registrarHistorico("ACERTO", chute, adiv, pontos);
-      scores[duplaAtual]+= pontos;
+      const adiv=getAdivinhadorName();
+      const pontos=primeiraTentativa?2:1;
+      registrarHistorico("ACERTO",chute,adiv,pontos);
+      scores[duplaAtual]+=pontos;
       renderPontuacao();
+      showAcertoAnimation(duplaAtual);
+      launchConfetti();
       passarParaProximaPalavra();
-    } else {
-      registrarHistorico("ERRO", chute, getAdivinhadorName());
+    }else{
+      registrarHistorico("ERRO",chute,getAdivinhadorName());
       if(primeiraTentativa) primeiraTentativa=false;
       passarParaProximaDuplaMesmaPalavra();
     }
     campoChute.value="";
   }
-  btnEnviarChute.addEventListener("click", enviarChute);
+  btnEnviarChute.addEventListener("click",enviarChute);
 
   function pularPalavra(){
-    registrarHistorico("PULOU","Palavra pulada", getAdivinhadorName());
+    registrarHistorico("PULOU","Palavra pulada",getAdivinhadorName());
     pararTimer();
     passarParaProximaPalavra();
   }
-  btnPular.addEventListener("click", pularPalavra);
+  btnPular.addEventListener("click",pularPalavra);
 
   function passarParaProximaPalavra(){
     indicePalavra++;
@@ -679,7 +718,7 @@
       encerrarPartida();
       return;
     }
-    duplaAtual = (duplaAtual+1) % duplas.length;
+    duplaAtual=(duplaAtual+1)%duplas.length;
     tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
     primeiraTentativa=true;
@@ -694,7 +733,7 @@
 
   function passarParaProximaDuplaMesmaPalavra(){
     pararTimer();
-    duplaAtual = (duplaAtual+1)%duplas.length;
+    duplaAtual=(duplaAtual+1)%duplas.length;
     tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
     tempoRestanteEl.classList.remove("text-red-600");
@@ -709,33 +748,33 @@
   function renderPontuacao(){
     scoreContainer.innerHTML="";
     duplas.forEach((dupla,idx)=>{
-      let nomes = dupla[0].name.toUpperCase()+" & "+dupla[1].name.toUpperCase();
-      const row = document.createElement("div");
-      row.className = "p-2 bg-white rounded shadow flex items-center gap-2";
+      let nomes=dupla[0].name.toUpperCase()+" & "+dupla[1].name.toUpperCase();
+      const row=document.createElement("div");
+      row.className="p-2 bg-white rounded shadow flex items-center gap-2";
       dupla.forEach((p)=>{
         if(p.photo){
-          const img = document.createElement("img");
-          img.src = p.photo;
-          img.alt = "Foto";
-          img.className = "w-6 h-6 object-cover rounded-full";
+          const img=document.createElement("img");
+          img.src=p.photo;
+          img.alt="Foto";
+          img.className="w-6 h-6 object-cover rounded-full";
           row.appendChild(img);
         }
       });
-      const txt = document.createElement("span");
-      txt.className = "font-bold text-sm";
-      txt.textContent = nomes;
+      const txt=document.createElement("span");
+      txt.className="font-bold text-sm";
+      txt.textContent=nomes;
       row.appendChild(txt);
-      const pts = document.createElement("span");
-      pts.className = "text-blue-700 font-extrabold text-lg ml-auto";
-      pts.textContent = scores[idx]+" pts";
+      const pts=document.createElement("span");
+      pts.className="text-blue-700 font-extrabold text-lg ml-auto";
+      pts.textContent=scores[idx]+" pts";
       row.appendChild(pts);
       scoreContainer.appendChild(row);
     });
   }
 
-  function registrarHistorico(acao, texto, jogador, pontos){
-    const currentWord = palavrasRodada[indicePalavra] || "";
-    historico.push({acao,texto,jogador,points:pontos, palavra:currentWord});
+  function registrarHistorico(acao,texto,jogador,pontos){
+    const currentWord=palavrasRodada[indicePalavra]||"";
+    historico.push({acao,texto,jogador,points:pontos,palavra:currentWord});
     atualizarHistoricoNaTela();
   }
 
@@ -748,19 +787,19 @@
       else if(h.acao==="ERRO"){icone="❌";mensagem=`${icone} ${h.jogador}: "${h.texto}"`;}
       else if(h.acao==="ACERTO"){icone="✅";mensagem=`${icone} ${h.jogador} +${h.points||0} pts`;}
       else if(h.acao==="PULOU"){icone="⏭️";mensagem=`${icone} ${h.jogador}: ${h.texto}`;}
-      const secretIcon = document.createElement("span");
+      const secretIcon=document.createElement("span");
       secretIcon.textContent="👁️";
       secretIcon.className="ml-2 text-blue-700 hover-scale";
       secretIcon.title="Ver palavra secreta";
       secretIcon.addEventListener("click",()=>{
         alert(`A palavra secreta era: ${h.palavra}`);
-      });
-      const div = document.createElement("div");
-      div.textContent = mensagem;
+     });
+      const div=document.createElement("div");
+      div.textContent=mensagem;
       div.appendChild(secretIcon);
       historicoAcoes.appendChild(div);
-    });
-    historicoAcoes.scrollTop = historicoAcoes.scrollHeight;
+   });
+    historicoAcoes.scrollTop=historicoAcoes.scrollHeight;
   }
 
   function getDoadorName(){
@@ -775,7 +814,7 @@
       palavraSecretaEl.classList.remove("hidden");
       eyeIcon.textContent="👁️";
       mostraPalavra=true;
-    } else {
+    }else{
       palavraSecretaEl.classList.add("hidden");
       eyeIcon.textContent="🙈";
       mostraPalavra=false;
@@ -787,5 +826,6 @@
 
 </body>
 </html>
+
 
 
