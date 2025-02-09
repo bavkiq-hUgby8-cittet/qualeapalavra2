@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Qual é a Palavra? - Layout 16x9, Debug Logs</title>
+  <title>Qual é a Palavra? - Layout 16x9, Debug Logs (Fixed duplas duplication)</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Confetti -->
@@ -304,6 +304,7 @@
   const secretCenter=document.getElementById('secretCenter');
   const palavraSecretaCentro=document.getElementById('palavraSecretaCentro');
 
+  /* Only declared once => no duplication. */
   let jogadores=[];
   let duplas=[];
   let scores=[];
@@ -316,7 +317,6 @@
   let tempoRestante=60;
   let timerInterval=null;
   let historico=[];
-
   let cameraStream=null;
   let tempFotoDataUrl='';
 
@@ -477,18 +477,6 @@
       listaJogadoresEl.appendChild(div);
     });
   }
-
-  let duplas=[];
-  let scores=[];
-  let palavrasRodada=[];
-  let indicePalavra=0;
-  let duplaAtual=0;
-  let primeiraTentativa=true;
-  let mostraPalavra=false;
-  let tempoMaximoValue=60;
-  let tempoRestante=60;
-  let timerInterval=null;
-  let historico=[];
 
   function iniciarJogo(){
     console.log('iniciarJogo() => total jogadores =',jogadores.length);
@@ -860,3 +848,4 @@
 </script>
 </body>
 </html>
+
