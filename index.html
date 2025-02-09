@@ -2,11 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, user-scalable=no"
-  />
-  <title>Qual é a Palavra? - Refactor without errors</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Qual é a Palavra? - Refactor with the new rule</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Confetti -->
@@ -433,12 +430,15 @@
   </div>
 
   <script>
-    /* -------------------------------------------------------------------------
-       A lógica de JS permanece quase toda igual, só ajustei o ícone da palavra
-       secreta (eyeIcon) para trocar entre 🙈 e 👁️ em vez de 🔒/🔓.
-       Também removi o container antigo do timer/pular, já que agora ele está
-       no topo em um único container.
-       ------------------------------------------------------------------------- */
+  // =======================================================
+  // Wrap all code logic in an IIFE to avoid repeated var declarations
+  // =======================================================
+  (function () {
+
+    // ensure this is declared at the top of the IIFE so no reference errors occur
+    // "primeiraTentativa" is globally relevant for the entire word.
+    // Once it's false, every subsequent attempt by any pair is for 1 point.
+    let primeiraTentativa = true;
 
     const colorPalette = [
       "bg-red-200 text-red-800",
@@ -484,6 +484,9 @@
       }
       return array;
     }
+
+    console.assert(typeof confetti === 'function', "CDN confetti function not found.");
+    console.assert(typeof primeiraTentativa === 'boolean', 'Expected primeiraTentativa to be boolean here.');
 
     const palavrasBanco = {
       "PT-BR": ["cachorro", "arco-iris", "vermelho", "futebol", "jantar"],
@@ -549,7 +552,6 @@
     let palavrasRodada = [];
     let indicePalavra = 0;
     let duplaAtual = 0;
-    let primeiraTentativa = true;
     let mostraPalavra = false;
     let tempoMaximoValue = 60;
     let tempoRestante = 60;
@@ -720,6 +722,7 @@
 
       indicePalavra = 0;
       duplaAtual = 0;
+      // a nova palavra restabelece a chance de 2 pontos
       primeiraTentativa = true;
 
       tempoMaximoValue = parseInt(inputTempoMaximo.value) || 60;
@@ -943,43 +946,56 @@
       const palavraAtual = palavrasRodada[indicePalavra];
       if (!palavraAtual) return;
 
+      // Se o adivinhador acertou
       if (chute.toLowerCase() === palavraAtual.toLowerCase()) {
         const adiv = getAdivinhadorName();
+        // Se "primeiraTentativa" == true => 2 pontos; caso contrário => 1 ponto
         const pontos = primeiraTentativa ? 2 : 1;
         registrarHistorico("ACERTO", chute, adiv, pontos);
         scores[duplaAtual] += pontos;
         renderPontuacao();
         passarParaProximaPalavra();
       } else {
+        // Se errou
         registrarHistorico("ERRO", chute, getAdivinhadorName());
+        // Agora, TODAS as duplas só podem ganhar 1 ponto por esse mesmo word
         if (primeiraTentativa) {
           primeiraTentativa = false;
         }
+        // passa a vez para a próxima dupla, mas mantém a mesma palavra
         passarParaProximaDuplaMesmaPalavra();
       }
       campoChute.value = "";
     }
 
     function pularPalavra() {
+      // Pular => "próxima dupla com próxima palavra" => da forma que o usuário solicitou
+      // "...a dupla perde a vez e chama a próxima dupla com próxima palavra..."
       registrarHistorico("PULOU", "Palavra pulada", getAdivinhadorName());
       pararTimer();
       passarParaProximaPalavra();
     }
 
     function passarParaProximaPalavra() {
+      // Vamos para a próxima palavra (incrementa indicePalavra)
       indicePalavra++;
       if (indicePalavra >= palavrasRodada.length) {
         encerrarPartida();
         return;
       }
+      // Avança para a próxima dupla
       duplaAtual = (duplaAtual + 1) % duplas.length;
+
+      // Restaura tempo
       tempoRestante = tempoMaximoValue;
       tempoRestanteEl.textContent = tempoRestante;
-      primeiraTentativa = true;
-
       tempoRestanteEl.classList.remove("text-red-600");
       tempoRestanteEl.classList.add("text-green-600");
 
+      // Restaura a chance de 2 pontos, pois agora é outra palavra
+      primeiraTentativa = true;
+
+      // Oculta palavra secreta
       mostraPalavra = false;
       togglePalavraCheckbox.checked = false;
       palavraSecretaEl.classList.add("hidden");
@@ -989,17 +1005,26 @@
     }
 
     function passarParaProximaDuplaMesmaPalavra() {
+      // Erro => passa a vez para a próxima dupla, mas a MESMA palavra e 1 ponto max
       pararTimer();
       duplaAtual = (duplaAtual + 1) % duplas.length;
+
       tempoRestante = tempoMaximoValue;
       tempoRestanteEl.textContent = tempoRestante;
       tempoRestanteEl.classList.remove("text-red-600");
       tempoRestanteEl.classList.add("text-green-600");
 
+      // "primeiraTentativa" stays false if it was set false.
+      // so we do not reset it here.
+
       mostraPalavra = false;
       togglePalavraCheckbox.checked = false;
       palavraSecretaEl.classList.add("hidden");
       eyeIcon.textContent = "🙈";
+
+      // Additional test to confirm that once we got an ERRO on the first attempt,
+      // "primeiraTentativa" remains false for subsequent attempts on the same word.
+      console.assert(primeiraTentativa === false, 'After the first error, primeiratentativa must remain false for the same word.');
 
       atualizarDuplaNaTela();
     }
@@ -1044,7 +1069,9 @@
 
     // Mostra tela de config ao carregar
     exibirTelaConfig();
+  })();
   </script>
 </body>
 </html>
+
 
