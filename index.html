@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Qual é a Palavra? - Refactor with the new rule</title>
+  <title>Qual é a Palavra? - Customized Layout (No Duplicate Variables)</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Confetti -->
@@ -18,6 +18,30 @@
       font-size: 2rem;
       font-weight: bold;
       color: #ff0000;
+    }
+
+    /* For celebratory animation (photos growing) */
+    @keyframes growAndFade {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      80% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1.3);
+        opacity: 0;
+      }
+    }
+
+    /* Estilos para o destaque do jogador da vez */
+    .active-turn {
+      border: 4px solid #3b82f6; /* azul tailwind (blue-500) */
     }
   </style>
 </head>
@@ -73,7 +97,11 @@
       id="config-screen"
       class="w-full max-w-4xl p-4 md:p-6 shadow-2xl bg-gradient-to-r from-white to-gray-50 rounded-2xl mb-4"
     >
-      <h1 class="text-4xl font-extrabold mb-2 text-center">QUAL É A PALAVRA?</h1>
+      <!-- Box behind the main title -->
+      <div class="bg-blue-200 p-4 rounded shadow-md text-center mb-6">
+        <h1 class="text-4xl font-extrabold">QUAL É A PALAVRA?</h1>
+      </div>
+
       <h2 class="text-2xl font-extrabold mb-6 text-center">
         Configuração Inicial
       </h2>
@@ -84,8 +112,7 @@
       >
         <div>
           <label class="block mb-2 font-semibold"
-            >Escolha o idioma das palavras:</label
-          >
+            >Escolha o idioma das palavras:</label>
           <div id="idiomaEscolha" class="flex gap-4 flex-wrap">
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="idiomaRadio" value="PT-BR" checked />
@@ -127,9 +154,9 @@
         </select>
       </div>
 
-      <!-- Jogadores -->
+      <!-- Jogadores (max 10) -->
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">Jogadores:</label>
+        <label class="block mb-1 font-semibold">Jogadores (máx 10):</label>
         <div class="flex gap-2 mb-2 flex-wrap">
           <input
             type="text"
@@ -218,12 +245,7 @@
       id="main-screen"
       class="w-full max-w-[1600px] aspect-video bg-white rounded-xl shadow-2xl relative hidden"
     >
-      <!-- 
-        NOVO TOPO: 
-        - Botões "Encerrar" e "Pular" juntos à esquerda;
-        - Timer ao centro;
-        - Box de pontuação à direita.
-      -->
+      <!-- TOPO: Encerrar/Pular, Timer, Pontuação -->
       <div
         class="absolute top-0 left-0 w-full p-4 flex items-center justify-between"
       >
@@ -246,12 +268,12 @@
           </button>
         </div>
 
-        <!-- Centro: Timer (Título + Contador + Botão de iniciar tempo) -->
+        <!-- Centro: Timer -->
         <div class="text-center flex flex-col items-center gap-2">
-          <p class="text-xl font-bold">Tempo Restante</p>
+          <p class="text-2xl font-bold">Tempo Restante</p>
           <p
             id="tempoRestante"
-            class="text-green-600 font-extrabold text-3xl"
+            class="text-green-600 font-extrabold text-5xl"
           >
             60
           </p>
@@ -275,22 +297,14 @@
         </div>
       </div>
 
-      <!-- CONTEÚDO PRINCIPAL DO RODAPÉ (Dupla Atual + Dica/Chute + Histórico) -->
+      <!-- RODAPÉ: 3 CAIXAS (Doador, Palavra Secreta, Adivinhador) -->
       <div class="absolute bottom-0 left-0 w-full p-4">
-        <div class="flex flex-col md:flex-row gap-4 justify-between">
-          <!-- Dupla Atual -->
-          <div
-            class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/2"
-          >
-            <h2 class="text-xl font-semibold mb-2">Dupla Atual</h2>
-
-            <!-- PAINEL NOVO: “Jogador 1 dê uma dica” -->
-            <div class="mb-1">
-              <p class="text-sm text-gray-500 font-semibold uppercase">
-                Jogador 1, dê uma dica
-              </p>
-            </div>
-            <div class="flex items-center gap-2 mb-4">
+        <div class="flex flex-col md:flex-row gap-4 justify-center items-start">
+          <!-- Box 1: Doador + Dica -->
+          <div id="boxDoador" class="flex flex-col p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/3">
+            <h2 class="text-xl font-semibold mb-2">Doador</h2>
+            <!-- Foto + Nome -->
+            <div class="flex items-center gap-2 mb-2">
               <img
                 id="doadorFoto"
                 src=""
@@ -302,12 +316,55 @@
               </p>
             </div>
 
-            <!-- PAINEL NOVO: “Jogador 2 qual a palavra?” -->
-            <div class="mb-1">
-              <p class="text-sm text-gray-500 font-semibold uppercase">
-                Jogador 2, qual a palavra?
-              </p>
+            <!-- Campo Dica -->
+            <label class="block font-bold mb-1">Dica:</label>
+            <div class="flex gap-2 mb-2">
+              <input
+                type="text"
+                id="campoDica"
+                class="border border-gray-300 p-2 rounded w-full bg-white"
+              />
+              <button
+                id="btnEnviarDica"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow
+                       transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                OK
+              </button>
             </div>
+          </div>
+
+          <!-- Box 2: Palavra Secreta -->
+          <div id="boxPalavra" class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/3 flex flex-col items-center justify-center gap-2">
+            <h2 class="text-xl font-semibold mb-2">Palavra Secreta</h2>
+
+            <input type="checkbox" id="togglePalavra" class="hidden" />
+            <label
+              for="togglePalavra"
+              id="labelToggle"
+              class="cursor-pointer bg-gray-300 p-2 rounded shadow flex items-center"
+            >
+              <!-- Large icon -->
+              <span id="eyeIcon" class="text-6xl">🙈</span>
+            </label>
+            <span
+              id="palavraSecreta"
+              class="hidden bg-white px-2 py-1 rounded shadow flex items-center gap-2"
+            >
+              <span class="text-2xl font-extrabold uppercase text-red-600">
+                Palavra:
+              </span>
+              <span
+                id="conteudoPalavra"
+                class="text-xl font-bold uppercase text-red-500"
+              ></span>
+            </span>
+          </div>
+
+          <!-- Box 3: Adivinhador + Chute -->
+          <div id="boxAdiv" class="flex flex-col p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/3">
+            <h2 class="text-xl font-semibold mb-2">Adivinhador</h2>
+            <!-- Foto + Nome -->
             <div class="flex items-center gap-2 mb-2">
               <img
                 id="adivinhadorFoto"
@@ -320,71 +377,21 @@
               </p>
             </div>
 
-            <!-- Ícone de visualização da palavra secreta mais moderno -->
-            <div class="mt-2 flex items-center gap-2">
-              <input type="checkbox" id="togglePalavra" class="hidden" />
-              <label
-                for="togglePalavra"
-                id="labelToggle"
-                class="cursor-pointer bg-gray-300 p-2 rounded shadow flex items-center"
+            <!-- Campo Chute -->
+            <label class="block font-bold mb-1">Chute:</label>
+            <div class="flex gap-2 mb-2">
+              <input
+                type="text"
+                id="campoChute"
+                class="border border-gray-300 p-2 rounded w-full bg-white"
+              />
+              <button
+                id="btnEnviarChute"
+                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow
+                       transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300"
               >
-                <!-- Maior e “moderno” – aqui troquei o 🔒/🔓 por 🙈 (fechado) e 👁️ (aberto), via JS -->
-                <span id="eyeIcon" class="text-2xl">🙈</span>
-              </label>
-              <span
-                id="palavraSecreta"
-                class="ml-2 hidden bg-white px-2 py-1 rounded shadow flex items-center gap-2"
-              >
-                <!-- Letra maior, em maiúsculas, cor vermelha -->
-                <span class="text-2xl font-extrabold uppercase text-red-600">
-                  Palavra Secreta:
-                </span>
-                <!-- Palavra em si -->
-                <span
-                  id="conteudoPalavra"
-                  class="text-xl font-bold uppercase text-red-500"
-                ></span>
-              </span>
-            </div>
-          </div>
-
-          <!-- Dica e Chute -->
-          <div
-            class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/2"
-          >
-            <div class="mb-4">
-              <label class="block font-bold mb-2">Dica para o Adivinhador:</label>
-              <div class="flex gap-2">
-                <input
-                  type="text"
-                  id="campoDica"
-                  class="border border-gray-300 p-2 rounded w-full bg-white"
-                />
-                <button
-                  id="btnEnviarDica"
-                  class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow
-                         transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  OK
-                </button>
-              </div>
-            </div>
-            <div>
-              <label class="block font-bold mb-2">Chute do Adivinhador:</label>
-              <div class="flex gap-2">
-                <input
-                  type="text"
-                  id="campoChute"
-                  class="border border-gray-300 p-2 rounded w-full bg-white"
-                />
-                <button
-                  id="btnEnviarChute"
-                  class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow
-                         transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300"
-                >
-                  OK
-                </button>
-              </div>
+                OK
+              </button>
             </div>
           </div>
         </div>
@@ -430,15 +437,28 @@
   </div>
 
   <script>
-  // =======================================================
-  // Wrap all code logic in an IIFE to avoid repeated var declarations
-  // =======================================================
   (function () {
+    // Additional test to ensure we only declare duplas once
+    // And if there's any second let duplas, remove it.
 
-    // ensure this is declared at the top of the IIFE so no reference errors occur
-    // "primeiraTentativa" is globally relevant for the entire word.
-    // Once it's false, every subsequent attempt by any pair is for 1 point.
     let primeiraTentativa = true;
+    let jogadores = [];
+    let duplas = []; // We declare it once here.
+    let scores = [];
+    let palavrasRodada = [];
+    let indicePalavra = 0;
+    let duplaAtual = 0;
+    let mostraPalavra = false;
+    let tempoMaximoValue = 60;
+    let tempoRestante = 60;
+    let timerInterval = null;
+    let historico = [];
+    let cameraStream = null;
+    let tempFotoDataUrl = "";
+
+    console.assert(typeof duplas === 'object', "Expected duplas to be an array/object declared only once.");
+
+    let fase = "dica"; // track which phase we're in
 
     const colorPalette = [
       "bg-red-200 text-red-800",
@@ -477,6 +497,34 @@
       })();
     }
 
+    function celebrarAcerto(duplaIndex) {
+      const overlay = document.createElement("div");
+      overlay.className = "fixed inset-0 flex items-center justify-center z-50 pointer-events-none";
+
+      const duoContainer = document.createElement("div");
+      duoContainer.className = "flex items-center gap-4";
+
+      const [p1, p2] = duplas[duplaIndex];
+      [p1, p2].forEach((pl) => {
+        const imgEl = document.createElement("img");
+        imgEl.src = pl.photo || "";
+        imgEl.alt = "Foto";
+        imgEl.className = "w-16 h-16 object-cover rounded-full animate-zoomPhoto";
+        imgEl.style.animation = "growAndFade 2s forwards";
+        if (!pl.photo) {
+          imgEl.src = "https://via.placeholder.com/64";
+        }
+        duoContainer.appendChild(imgEl);
+      });
+
+      overlay.appendChild(duoContainer);
+      document.body.appendChild(overlay);
+
+      setTimeout(() => {
+        document.body.removeChild(overlay);
+      }, 2000);
+    }
+
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -510,13 +558,11 @@
     const listaJogadoresEl = document.getElementById("listaJogadores");
     const modoDuplasSelect = document.getElementById("modoDuplas");
 
-    // Botões de Câmera
     const btnAbrirCamera = document.getElementById("btnAbrirCamera");
     const btnCapturarFoto = document.getElementById("btnCapturarFoto");
     const videoCamera = document.getElementById("videoCamera");
     const canvasFoto = document.getElementById("canvasFoto");
 
-    // Botões Jogo
     const btnAdicionarJogador = document.getElementById("btnAdicionarJogador");
     const btnIniciar = document.getElementById("btnIniciar");
     const btnEncerrar = document.getElementById("btnEncerrar");
@@ -526,7 +572,6 @@
     const btnPular = document.getElementById("btnPular");
     const btnReiniciar = document.getElementById("btnReiniciar");
 
-    // Elementos de pontuação e etc.
     const scoreContainer = document.getElementById("scoreContainer");
     const doadorEl = document.getElementById("doador");
     const doadorFoto = document.getElementById("doadorFoto");
@@ -546,20 +591,11 @@
     const secretCenter = document.getElementById("secretCenter");
     const palavraSecretaCentro = document.getElementById("palavraSecretaCentro");
 
-    let jogadores = [];
-    let duplas = [];
-    let scores = [];
-    let palavrasRodada = [];
-    let indicePalavra = 0;
-    let duplaAtual = 0;
-    let mostraPalavra = false;
-    let tempoMaximoValue = 60;
-    let tempoRestante = 60;
-    let timerInterval = null;
-    let historico = [];
-    let cameraStream = null;
-    let tempFotoDataUrl = "";
+    // CAIXAS DE LAYOUT
+    const boxDoador = document.getElementById("boxDoador");
+    const boxAdiv = document.getElementById("boxAdiv");
 
+    // show/hide screens
     function exibirTelaConfig() {
       configScreen.classList.remove("hidden");
       mainScreen.classList.add("hidden");
@@ -590,7 +626,7 @@
       speechSynthesis.speak(msg);
     }
 
-    // Câmera
+    // Camera
     btnAbrirCamera.addEventListener("click", async () => {
       try {
         cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -623,6 +659,11 @@
 
     // Jogadores
     function adicionarJogador() {
+      if (jogadores.length >= 10) {
+        alert("Máximo de 10 jogadores atingido!");
+        return;
+      }
+
       let nomeDigitado = inputNomeJogador.value.trim() || `Convidado #${jogadores.length + 1}`;
       let colorClass = colorPalette[jogadores.length % colorPalette.length];
 
@@ -693,12 +734,25 @@
       });
     }
 
-    // Iniciar Jogo
+    // Toggling the secret word display
+    togglePalavraCheckbox.addEventListener("change", (evt) => {
+      if (evt.target.checked) {
+        palavraSecretaEl.classList.remove("hidden");
+        eyeIcon.textContent = "👁️";
+        mostraPalavra = true;
+      } else {
+        palavraSecretaEl.classList.add("hidden");
+        eyeIcon.textContent = "🙈";
+        mostraPalavra = false;
+      }
+    });
+
     function iniciarJogo() {
       if (jogadores.length < 4 || jogadores.length % 2 !== 0) {
         alert("É necessário ao menos 4 jogadores (número par).");
         return;
       }
+      // only declare duplas once, so we just do: duplas = []
       duplas = [];
       const modo = modoDuplasSelect.value;
 
@@ -714,15 +768,12 @@
       scores = new Array(duplas.length).fill(0);
 
       const idioma = getSelectedIdioma();
-      let listaPalavrasBrutas = Array.from(
-        new Set(palavrasBanco[idioma] || [])
-      );
+      let listaPalavrasBrutas = Array.from(new Set(palavrasBanco[idioma] || []));
       shuffleArray(listaPalavrasBrutas);
       palavrasRodada = listaPalavrasBrutas.slice(0, 5);
 
       indicePalavra = 0;
       duplaAtual = 0;
-      // a nova palavra restabelece a chance de 2 pontos
       primeiraTentativa = true;
 
       tempoMaximoValue = parseInt(inputTempoMaximo.value) || 60;
@@ -751,19 +802,41 @@
       adivinhadorEl.textContent = adivPlayer.name.toUpperCase();
       conteudoPalavraEl.textContent = palavrasRodada[indicePalavra] || "";
 
-      if (doadorPlayer.photo) {
-        doadorFoto.src = doadorPlayer.photo;
-        doadorFoto.classList.remove("hidden");
-      } else {
-        doadorFoto.classList.add("hidden");
-      }
+      // highlight doador or adiv if needed
+      boxDoador.classList.remove("active-turn");
+      boxAdiv.classList.remove("active-turn");
 
-      if (adivPlayer.photo) {
-        adivinhadorFoto.src = adivPlayer.photo;
-        adivinhadorFoto.classList.remove("hidden");
-      } else {
-        adivinhadorFoto.classList.add("hidden");
+      // we'll assume doador always is in 'hint' phase first.
+      boxDoador.classList.add("active-turn");
+    }
+
+    function pararTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
       }
+    }
+
+    function iniciarTimer() {
+      pararTimer();
+      timerInterval = setInterval(() => {
+        tempoRestante--;
+        tempoRestanteEl.textContent = tempoRestante;
+
+        if (tempoRestante <= 10) {
+          tempoRestanteEl.classList.remove("text-green-600");
+          tempoRestanteEl.classList.add("text-red-600");
+        } else {
+          tempoRestanteEl.classList.remove("text-red-600");
+          tempoRestanteEl.classList.add("text-green-600");
+        }
+
+        if (tempoRestante <= 0) {
+          pararTimer();
+          registrarHistorico("PULOU", "Tempo esgotado.", getAdivinhadorName());
+          passarParaProximaDuplaMesmaPalavra();
+        }
+      }, 1000);
     }
 
     function encerrarPartida() {
@@ -823,35 +896,6 @@
       fotoJogador.value = "";
       renderJogadores();
       exibirTelaConfig();
-    }
-
-    function pararTimer() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-    }
-
-    function iniciarTimer() {
-      pararTimer();
-      timerInterval = setInterval(() => {
-        tempoRestante--;
-        tempoRestanteEl.textContent = tempoRestante;
-
-        if (tempoRestante <= 10) {
-          tempoRestanteEl.classList.remove("text-green-600");
-          tempoRestanteEl.classList.add("text-red-600");
-        } else {
-          tempoRestanteEl.classList.remove("text-red-600");
-          tempoRestanteEl.classList.add("text-green-600");
-        }
-
-        if (tempoRestante <= 0) {
-          pararTimer();
-          registrarHistorico("PULOU", "Tempo esgotado.", getAdivinhadorName());
-          passarParaProximaDuplaMesmaPalavra();
-        }
-      }, 1000);
     }
 
     function renderPontuacao() {
@@ -938,6 +982,8 @@
       if (!dica) return;
       registrarHistorico("DICA", dica, getDoadorName());
       campoDica.value = "";
+      boxDoador.classList.remove("active-turn");
+      boxAdiv.classList.add("active-turn");
     }
 
     function enviarChute() {
@@ -946,56 +992,50 @@
       const palavraAtual = palavrasRodada[indicePalavra];
       if (!palavraAtual) return;
 
-      // Se o adivinhador acertou
       if (chute.toLowerCase() === palavraAtual.toLowerCase()) {
+        // ACERTO
         const adiv = getAdivinhadorName();
-        // Se "primeiraTentativa" == true => 2 pontos; caso contrário => 1 ponto
         const pontos = primeiraTentativa ? 2 : 1;
         registrarHistorico("ACERTO", chute, adiv, pontos);
         scores[duplaAtual] += pontos;
         renderPontuacao();
+        launchConfetti();
+        celebrarAcerto(duplaAtual);
         passarParaProximaPalavra();
+        boxAdiv.classList.remove("active-turn");
+        boxDoador.classList.add("active-turn");
       } else {
-        // Se errou
+        // ERRO
         registrarHistorico("ERRO", chute, getAdivinhadorName());
-        // Agora, TODAS as duplas só podem ganhar 1 ponto por esse mesmo word
         if (primeiraTentativa) {
           primeiraTentativa = false;
         }
-        // passa a vez para a próxima dupla, mas mantém a mesma palavra
         passarParaProximaDuplaMesmaPalavra();
       }
       campoChute.value = "";
     }
 
     function pularPalavra() {
-      // Pular => "próxima dupla com próxima palavra" => da forma que o usuário solicitou
-      // "...a dupla perde a vez e chama a próxima dupla com próxima palavra..."
       registrarHistorico("PULOU", "Palavra pulada", getAdivinhadorName());
       pararTimer();
       passarParaProximaPalavra();
+      boxAdiv.classList.remove("active-turn");
+      boxDoador.classList.add("active-turn");
     }
 
     function passarParaProximaPalavra() {
-      // Vamos para a próxima palavra (incrementa indicePalavra)
       indicePalavra++;
       if (indicePalavra >= palavrasRodada.length) {
         encerrarPartida();
         return;
       }
-      // Avança para a próxima dupla
       duplaAtual = (duplaAtual + 1) % duplas.length;
-
-      // Restaura tempo
       tempoRestante = tempoMaximoValue;
       tempoRestanteEl.textContent = tempoRestante;
       tempoRestanteEl.classList.remove("text-red-600");
       tempoRestanteEl.classList.add("text-green-600");
-
-      // Restaura a chance de 2 pontos, pois agora é outra palavra
       primeiraTentativa = true;
 
-      // Oculta palavra secreta
       mostraPalavra = false;
       togglePalavraCheckbox.checked = false;
       palavraSecretaEl.classList.add("hidden");
@@ -1005,26 +1045,17 @@
     }
 
     function passarParaProximaDuplaMesmaPalavra() {
-      // Erro => passa a vez para a próxima dupla, mas a MESMA palavra e 1 ponto max
       pararTimer();
       duplaAtual = (duplaAtual + 1) % duplas.length;
-
       tempoRestante = tempoMaximoValue;
       tempoRestanteEl.textContent = tempoRestante;
       tempoRestanteEl.classList.remove("text-red-600");
       tempoRestanteEl.classList.add("text-green-600");
 
-      // "primeiraTentativa" stays false if it was set false.
-      // so we do not reset it here.
-
       mostraPalavra = false;
       togglePalavraCheckbox.checked = false;
       palavraSecretaEl.classList.add("hidden");
       eyeIcon.textContent = "🙈";
-
-      // Additional test to confirm that once we got an ERRO on the first attempt,
-      // "primeiraTentativa" remains false for subsequent attempts on the same word.
-      console.assert(primeiraTentativa === false, 'After the first error, primeiratentativa must remain false for the same word.');
 
       atualizarDuplaNaTela();
     }
@@ -1048,20 +1079,6 @@
     btnIniciar.addEventListener("click", iniciarJogo);
     btnEncerrar.addEventListener("click", encerrarPartida);
     btnReiniciar.addEventListener("click", reiniciar);
-
-    // Quando "togglePalavra" for marcado, troca ícone e exibe/esconde a PALAVRA
-    togglePalavraCheckbox.addEventListener("change", (evt) => {
-      if (evt.target.checked) {
-        palavraSecretaEl.classList.remove("hidden");
-        eyeIcon.textContent = "👁️";
-        mostraPalavra = true;
-      } else {
-        palavraSecretaEl.classList.add("hidden");
-        eyeIcon.textContent = "🙈";
-        mostraPalavra = false;
-      }
-    });
-
     btnIniciarTempo.addEventListener("click", iniciarTimer);
     btnEnviarDica.addEventListener("click", enviarDica);
     btnEnviarChute.addEventListener("click", enviarChute);
@@ -1073,5 +1090,6 @@
   </script>
 </body>
 </html>
+
 
 
