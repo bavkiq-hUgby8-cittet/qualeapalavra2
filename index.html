@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Qual é a Palavra? - Refactor</title>
+  <title>Qual é a Palavra? - Final Working Code</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Canvas Confetti -->
@@ -43,7 +43,6 @@
 <body class="w-screen min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-2 md:p-6 overflow-x-hidden">
 
 <div id="app" class="flex flex-col justify-center items-center w-full max-w-[1920px] mx-auto relative">
-
   <canvas id="confettiCanvas" class="pointer-events-none fixed top-0 left-0 w-full h-full z-50"></canvas>
 
   <!-- Modal de Regras -->
@@ -56,7 +55,6 @@
         3) Se errar, as outras duplas ganham 1 ponto se acertarem.<br>
         4) Se pular ou o tempo acabar, passa para a próxima dupla ou próxima palavra.<br>
         5) Ao final, a dupla com mais pontos vence.<br>
-        <!-- Nova regra -->
         6) Não pode usar o radical da própria palavra como dica, sob pena de perder a vez.<br>
       </p>
       <button id="btnFalarRegras" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow-lg mb-4 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300">
@@ -68,7 +66,6 @@
 
   <!-- Tela de Configuração -->
   <div id="config-screen" class="w-full max-w-4xl p-4 md:p-6 shadow-2xl bg-gradient-to-r from-white to-gray-50 rounded-2xl mb-4">
-    <!-- CAIXA ATRAS DA FRASE "QUAL É A PALAVRA?" -->
     <div class="bg-blue-200 p-4 rounded-xl shadow-md">
       <h1 class="text-4xl font-extrabold mb-2 text-center">QUAL É A PALAVRA?</h1>
     </div>
@@ -153,7 +150,6 @@
         <button id="btnPular" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 rounded font-semibold shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">Pular</button>
       </div>
 
-      <!-- Tempo Restante mais central e maior -->
       <div class="text-center flex flex-col items-center gap-2">
         <p class="text-xl font-bold">Tempo Restante</p>
         <p id="tempoRestante" class="text-green-600 font-extrabold text-6xl">60</p>
@@ -314,15 +310,14 @@
     return array;
   }
 
-  // Exemplo de 2000 palavras. (Placeholder real teria 2000 strings.)
-  // Aqui apenas exemplificamos.
+  // Exemplo de 2000 palavras.
   const bigWordSet = [];
   for(let i=1; i<=2000; i++){
     bigWordSet.push("palavra"+i);
   }
 
   const palavrasBanco={
-    "PT-BR": bigWordSet, // substitui as 5 antigas por 2000 no PT-BR
+    "PT-BR": bigWordSet,
     "PT-PT":["cão","arc-íris","vermelho","futebol","jantar"],
     "EN-US":["dog","rainbow","red","soccer","dinner"],
     "ES":["perro","arcoiris","rojo","futbol","cena"]
@@ -551,6 +546,8 @@
     tempoRestante=tempoMaximoValue;
     tempoRestanteEl.textContent=tempoRestante;
   }
+
+  let timerInterval=null;
 
   function iniciarJogo(){
     if(jogadores.length<4 || jogadores.length%2!==0){
@@ -906,3 +903,4 @@
 
 </body>
 </html>
+
