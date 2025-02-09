@@ -38,7 +38,6 @@
         opacity: 0;
       }
     }
-
   </style>
 </head>
 <body class="w-screen min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-2 md:p-6 overflow-x-hidden">
@@ -157,7 +156,11 @@
         <p class="text-xl font-bold">Tempo Restante</p>
         <!-- Aumentando a fonte do tempo para 6xl -->
         <p id="tempoRestante" class="text-green-600 font-extrabold text-6xl">60</p>
-        <button id="btnIniciarTempo" class="rounded-full w-12 h-12 bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300 hover:scale-105" title="Iniciar Tempo">⏲</button>
+        <div class="flex gap-2">
+          <button id="btnIniciarTempo" class="rounded-full w-12 h-12 bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300 hover:scale-105" title="Iniciar Tempo">⏲</button>
+          <!-- Novo botao p/ reiniciar manualmente -->
+          <button id="btnResetTempo" class="rounded-full w-12 h-12 bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center shadow transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-300 hover:scale-105" title="Reiniciar Tempo">🔄</button>
+        </div>
       </div>
 
       <div id="boxPontuacao" class="bg-gradient-to-r from-blue-50 to-white p-4 rounded-xl shadow-md text-sm">
@@ -168,10 +171,9 @@
 
     <div class="absolute bottom-0 left-0 w-full p-4">
       <div class="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow p-4 flex flex-col md:flex-row gap-4">
-        <!-- Doador -->
-        <!-- Adicionamos um id para destacar o container via JS -->
+        <!-- Mudar label "Jogador 1 (Doador)" p/ "Jogador 1 (Dica)" -->
         <div id="doadorContainer" class="flex-1 bg-blue-100 rounded-xl p-2 flex flex-col gap-2">
-          <h2 class="text-xl font-semibold">Jogador 1 (Doador)</h2>
+          <h2 class="text-xl font-semibold">Jogador 1 (Dica)</h2>
           <div class="flex items-center gap-2">
             <img id="doadorFoto" src="" alt="Foto do Doador" class="w-10 h-10 object-cover rounded-full hidden"/>
             <p class="text-lg font-bold text-blue-700"><span id="doador" class="bg-white rounded px-2 py-1"></span></p>
@@ -238,6 +240,7 @@
     2) Expect to start game with no error if we have 4 players.
     The user requested not to re-declare 'primeiraTentativa' multiple times.
     Also we remove re-declaration of 'cameraStream' from inside iniciarJogo.
+    Also removed any second declaration of 'timerInterval' inside iniciarJogo.
   */
 
   const colorPalette = [
@@ -346,6 +349,10 @@
   const btnIniciar=document.getElementById("btnIniciar");
   const btnEncerrar=document.getElementById("btnEncerrar");
   const btnIniciarTempo=document.getElementById("btnIniciarTempo");
+
+  // NEW Manual Reset Time button
+  const btnResetTempo=document.getElementById("btnResetTempo");
+
   const btnEnviarDica=document.getElementById("btnEnviarDica");
   const btnEnviarChute=document.getElementById("btnEnviarChute");
   const btnPular=document.getElementById("btnPular");
@@ -380,6 +387,7 @@
   let mostraPalavra=false;
   let tempoMaximoValue=60;
   let tempoRestante=60;
+  // Only a single global declaration of timerInterval:
   let timerInterval=null;
   let historico=[];
 
@@ -551,13 +559,17 @@
   // LÓGICA DO JOGO
   // ================================
 
+  function resetTempo(){
+    tempoRestante=tempoMaximoValue;
+    tempoRestanteEl.textContent=tempoRestante;
+  }
+
   function iniciarJogo(){
     // 1) Bloqueia se >10 ou <4
     if(jogadores.length<4 || jogadores.length%2!==0){
       alert("É necessário ao menos 4 jogadores (número par)." );
       return;
     }
-    // se por acaso queira travar tb se>10 (ja travamos no add, mas so pra garantir)
     if(jogadores.length>10){
       alert("Máximo de 10 jogadores!");
       return;
@@ -658,6 +670,11 @@
 
   btnIniciarTempo.addEventListener("click",iniciarTimer);
 
+  // Ao clicar no resetTempo, apenas chama resetTempo()
+  btnResetTempo.addEventListener("click",()=>{
+    resetTempo();
+  });
+
   function encerrarPartida(){
     exibirTelaFinal();
     pararTimer();
@@ -719,6 +736,9 @@
     registrarHistorico("DICA",dica,getDoadorName());
     campoDica.value="";
 
+    // Reseta tempo quando jogador escreve uma dica e clica em OK
+    resetTempo();
+
     // Agora, escurece adivinhador (bg-blue-300) e volta doador (bg-blue-100)
     document.getElementById("doadorContainer").classList.remove("bg-blue-300");
     document.getElementById("doadorContainer").classList.add("bg-blue-100");
@@ -732,6 +752,10 @@
     if(!chute)return;
     const palavraAtual=palavrasRodada[indicePalavra];
     if(!palavraAtual)return;
+
+    // Reseta tempo quando jogador escreve uma resposta e clica em OK
+    resetTempo();
+
     if(chute.toLowerCase()===palavraAtual.toLowerCase()){
       const adiv=getAdivinhadorName();
       const pontos=primeiraTentativa?2:1;
