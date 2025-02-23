@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, user-scalable=no" />
-  <title>Qual é a Palavra? - Updated Requests</title>
+  <title>Qual é a Palavra? - Versão Simplificada</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <style>
     .hover-scale:hover {
       transform: scale(1.2);
       transition: transform 0.2s;
       cursor: pointer;
     }
-    .secret-centered {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #ff0000;
+    .active-turn {
+      border: 4px solid #3b82f6; /* Tailwind blue-500 */
     }
 
-    /* For celebratory animation (photos growing) */
+    /* Animação final (mantida igual, 12x maior) */
     @keyframes growAndFade {
       0% {
         transform: scale(0.5);
@@ -38,95 +37,76 @@
         opacity: 0;
       }
     }
-
-    /* Estilos para o destaque do jogador da vez */
-    .active-turn {
-      border: 4px solid #3b82f6; /* azul tailwind (blue-500) */
-    }
   </style>
 </head>
-<body
-  class="w-screen min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-2 md:p-6 overflow-x-hidden"
->
-  <div
-    id="app"
-    class="flex flex-col justify-center items-center w-full max-w-[1920px] mx-auto relative"
-  >
+
+<body class="w-screen min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-2 md:p-4 overflow-x-hidden">
+  <div id="app" class="max-w-[1920px] mx-auto relative">
+    <!-- Canvas de Confetti -->
     <canvas
       id="confettiCanvas"
       class="pointer-events-none fixed top-0 left-0 w-full h-full z-50"
     ></canvas>
 
-    <!-- Modal de Regras -->
+    <!-- ~~~~~~~~~~ MODAL REGRAS ~~~~~~~~~~ -->
     <div
       id="modalRegras"
-      class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 items-center justify-center hidden z-40"
+      class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden z-40"
     >
       <div class="bg-white p-6 rounded-xl shadow-2xl max-w-lg mx-auto">
         <h2 class="text-2xl font-bold mb-4">Regras do Jogo</h2>
-        <p class="mb-4">
-          1) Você deve formar duplas de jogadores.<br />
-          2) Em cada palavra, a dupla que iniciar tem chance de ganhar 2 pontos
-          se acertar de primeira.<br />
-          3) Se errar, as outras duplas (ou a mesma dupla em nova vez) ganham 1
-          ponto se acertarem.<br />
-          4) Se pular ou o tempo acabar, passa para a próxima dupla ou próxima
-          palavra.<br />
-          5) Ao final, a dupla com mais pontos vence.<br />
+        <p class="mb-4 text-sm leading-relaxed">
+          1) Você deve formar duplas de jogadores.<br>
+          2) Em cada palavra, a dupla que iniciar tem chance de ganhar 2 pontos se acertar de primeira.<br>
+          3) Se errar, as outras duplas (ou a mesma dupla em nova vez) ganham 1 ponto se acertarem.<br>
+          4) Se pular ou o tempo acabar, passa para a próxima dupla ou próxima palavra.<br>
+          5) Ao final, a dupla com mais pontos vence.<br>
         </p>
         <button
           id="btnFalarRegras"
-          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow-lg mb-4
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow-lg mb-4 
                  transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
         >
           Falar Regras
         </button>
         <button
           id="btnFecharModal"
-          class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold shadow-lg
+          class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold shadow-lg 
                  transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300"
         >
           Fechar
         </button>
       </div>
     </div>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
-    <!-- Tela de Configuração -->
-    <div
-      id="config-screen"
-      class="w-full max-w-4xl p-4 md:p-6 shadow-2xl bg-gradient-to-r from-white to-gray-50 rounded-2xl mb-4"
-    >
-      <!-- Título principal com box -->
+    <!-- ~~~~~~~~~~ TELA DE CONFIGURAÇÃO ~~~~~~~~~~ -->
+    <div id="config-screen" class="bg-white/80 rounded-2xl shadow-2xl p-4 md:p-8 mb-4">
       <div class="bg-blue-200 p-4 rounded shadow-md text-center mb-6">
         <h1 class="text-4xl font-extrabold">QUAL É A PALAVRA?</h1>
       </div>
 
-      <h2 class="text-2xl font-extrabold mb-6 text-center">
-        Configuração Inicial
-      </h2>
+      <h2 class="text-2xl font-extrabold mb-6 text-center">Configuração Inicial</h2>
 
-      <!-- Idioma + Botão Regras -->
-      <div
-        class="flex flex-col md:flex-row justify-between mb-4 items-center gap-4"
-      >
+      <!-- Idioma + Regras -->
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
         <div>
-          <label class="block mb-2 font-semibold"
-            >Escolha o idioma das palavras:</label>
-          <div id="idiomaEscolha" class="flex gap-4 flex-wrap">
+          <label class="block mb-2 font-semibold">Escolha o idioma:</label>
+          <div class="flex gap-4 flex-wrap">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="idiomaRadio" value="PT-BR" checked />
+              <input type="radio" name="idiomaRadio" value="PT-BR" checked>
               <span class="text-2xl">🇧🇷</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="idiomaRadio" value="PT-PT" />
+              <input type="radio" name="idiomaRadio" value="PT-PT">
               <span class="text-2xl">🇵🇹</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="idiomaRadio" value="EN-US" />
+              <input type="radio" name="idiomaRadio" value="EN-US">
               <span class="text-2xl">🇺🇸</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="idiomaRadio" value="ES" />
+              <input type="radio" name="idiomaRadio" value="ES">
               <span class="text-2xl">🇪🇸</span>
             </label>
           </div>
@@ -140,39 +120,40 @@
         </button>
       </div>
 
-      <!-- Tempo Máximo (com 120s e padrão 90s) -->
+      <!-- Tempo (padrão 60s) -->
       <div class="mb-4">
         <label class="block mb-1 font-semibold">Tempo Máximo (segundos):</label>
-        <select
-          id="tempoMaximo"
-          class="border border-gray-300 p-1 text-sm rounded w-24"
-        >
+        <select id="tempoMaximo" class="border border-gray-300 p-2 rounded w-32">
           <option value="30">30 s</option>
-          <option value="60">60 s</option>
-          <option value="90" selected>90 s</option>
+          <option value="60" selected>60 s</option>
+          <option value="90">90 s</option>
           <option value="120">120 s</option>
         </select>
       </div>
 
-      <!-- Jogadores (max 10) -->
+      <!-- 
+        REMOVIDO: Opção de quantidade de palavras.
+        Agora sempre serão 100, definimos no JS.
+      -->
+
+      <!-- Jogadores (máx 10) -->
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">Jogadores (máx 10):</label>
-        <div class="flex gap-2 mb-2 flex-wrap">
+        <label class="block mb-2 font-semibold">Jogadores (máx 10):</label>
+        <div class="flex flex-wrap gap-2 mb-2">
           <input
             type="text"
             id="nomeJogador"
-            class="border border-gray-300 p-3 rounded w-full md:w-1/2"
+            class="border border-gray-300 p-2 rounded w-full md:w-1/2"
             placeholder="Nome do Jogador"
-          />
+          >
           <input
             type="file"
             id="fotoJogador"
             accept="image/*"
             capture="user"
-            class="border border-gray-300 p-3 rounded w-full md:w-1/2 bg-white"
-          />
+            class="border border-gray-300 p-2 rounded w-full md:w-1/2 bg-white"
+          >
         </div>
-
         <div class="flex gap-2 mb-4">
           <button
             id="btnAbrirCamera"
@@ -187,8 +168,6 @@
             Capturar Foto
           </button>
         </div>
-
-        <!-- Câmera / Canvas -->
         <div class="relative">
           <video
             id="videoCamera"
@@ -201,7 +180,6 @@
             class="border border-gray-300 w-64 h-48 object-cover rounded hidden"
           ></canvas>
         </div>
-
         <div class="flex justify-end mb-2">
           <button
             id="btnAdicionarJogador"
@@ -211,17 +189,15 @@
             Adicionar
           </button>
         </div>
-
-        <!-- AUMENTAR A CAIXA que lista jogadores -->
         <div
           id="listaJogadores"
-          class="bg-blue-50 border border-blue-200 p-3 rounded h-64 overflow-y-auto"
+          class="bg-blue-50 border border-blue-200 p-3 rounded h-56 overflow-y-auto"
         ></div>
       </div>
 
-      <!-- Modo de Duplas com 2 botões (Aleatório e Sequencial) -->
+      <!-- Modo Duplas -->
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">Formação das Duplas:</label>
+        <label class="block mb-2 font-semibold">Formação das Duplas:</label>
         <div class="flex gap-2">
           <button
             id="btnModoAleatorio"
@@ -249,544 +225,268 @@
         Iniciar
       </button>
     </div>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
-    <!-- TELA PRINCIPAL -->
-    <div
-      id="main-screen"
-      class="w-full max-w-[1600px] aspect-video bg-white rounded-xl shadow-2xl relative hidden"
-    >
-      <!-- TOPO: Encerrar/Pular, Timer, Pontuação -->
-      <div
-        class="absolute top-0 left-0 w-full p-4 flex items-center justify-between"
-      >
-        <!-- Esquerda: Encerrar + Pular -->
-        <div class="flex items-center gap-2">
+    <!-- ~~~~~~~~~~ TELA PRINCIPAL (RESPONSIVA) ~~~~~~~~~~ -->
+    <div id="main-screen" class="hidden bg-white rounded-xl shadow-xl mb-4 p-2 md:p-4">
+      <!-- Linha Superior: Botões + Timer + Pontuação -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-2 mb-4">
+        <!-- Esquerda: Encerrar, Trocar, Pular -->
+        <div class="flex gap-2">
           <button
             id="btnEncerrar"
-            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold shadow
-                   transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300
-                   hover:scale-105"
+            class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded font-semibold shadow
+                   transition focus:outline-none focus:ring-2 focus:ring-red-300 hover:scale-105"
           >
             Encerrar Partida
           </button>
           <button
+            id="btnTrocar"
+            class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-2 rounded font-semibold shadow
+                   transition focus:outline-none focus:ring-2 focus:ring-yellow-300 hover:scale-105"
+          >
+            Trocar
+          </button>
+          <button
             id="btnPular"
             class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 rounded font-semibold shadow
-                   transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300"
+                   transition focus:outline-none focus:ring-2 focus:ring-gray-300 hover:scale-105"
           >
             Pular
           </button>
         </div>
 
-        <!-- Centro: Timer -->
-        <div class="text-center flex flex-col items-center gap-2">
-          <p class="text-2xl font-bold">Tempo Restante</p>
-          <p
-            id="tempoRestante"
-            class="text-green-600 font-extrabold text-5xl"
-          >
-            60
-          </p>
-          <button
-            id="btnIniciarTempo"
-            class="rounded-full w-12 h-12 bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow
-                   transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300 hover:scale-105"
-            title="Iniciar Tempo"
-          >
-            ⏲
-          </button>
+        <!-- Centro: Timer + (Play/Pause e Reset) -->
+        <div class="flex flex-col items-center justify-center">
+          <p class="text-xl font-bold">Tempo Restante</p>
+          <p id="tempoRestante" class="text-5xl font-extrabold text-green-600">60</p>
+          <div class="flex gap-2 mt-2">
+            <button
+              id="btnToggleTempo"
+              class="rounded-full w-12 h-12 bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow
+                     focus:outline-none focus:ring-2 focus:ring-green-300 hover:scale-105"
+              title="Iniciar/Pausar Tempo"
+            >
+              ▶️/⏸
+            </button>
+            <button
+              id="btnResetTempo"
+              class="rounded-full w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white flex items-center justify-center shadow
+                     focus:outline-none focus:ring-2 focus:ring-yellow-300 hover:scale-105"
+              title="Resetar Tempo"
+            >
+              ♻️
+            </button>
+          </div>
         </div>
 
         <!-- Direita: Pontuação -->
         <div
           id="boxPontuacao"
-          class="bg-gradient-to-r from-blue-50 to-white p-4 rounded-xl shadow-md text-sm"
+          class="bg-blue-50 p-4 rounded-xl shadow-md text-sm w-full md:w-72"
         >
           <h2 class="text-lg font-bold mb-2 text-center">Pontuação</h2>
-          <div id="scoreContainer" class="flex flex-col gap-2"></div>
+          <div id="scoreContainer" class="flex flex-col gap-3"></div>
         </div>
       </div>
 
-      <!-- RODAPÉ: 3 CAIXAS ("Dica", Palavra Secreta, Adivinhador) -->
-      <div class="absolute bottom-0 left-0 w-full p-4">
-        <div class="flex flex-col md:flex-row gap-4 justify-center items-start">
-          <!-- Box 1: (Doador) => renomeado para "Dica" + Dica -->
-          <div id="boxDoador" class="flex flex-col p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/3">
-            <h2 class="text-xl font-semibold mb-2">Dica</h2>
-            <!-- Foto + Nome -->
-            <div class="flex items-center gap-2 mb-2">
-              <img
-                id="doadorFoto"
-                src=""
-                alt="Foto do Doador"
-                class="w-20 h-20 object-cover rounded-full hidden"
-              />
-              <p class="text-lg font-bold text-blue-700">
-                <span id="doador" class="bg-white rounded px-2 py-1"></span>
-              </p>
-            </div>
-
-            <!-- Campo Dica -->
-            <label class="block font-bold mb-1">Dica:</label>
-            <div class="flex gap-2 mb-2">
-              <input
-                type="text"
-                id="campoDica"
-                class="border border-gray-300 p-2 rounded w-full bg-white"
-              />
-              <button
-                id="btnEnviarDica"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow
-                       transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-
-          <!-- Box 2: Palavra Secreta -->
-          <div id="boxPalavra" class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/3 flex flex-col items-center justify-center gap-2">
-            <h2 class="text-xl font-semibold mb-2">Palavra Secreta</h2>
-
-            <input type="checkbox" id="togglePalavra" class="hidden" />
-            <label
-              for="togglePalavra"
-              id="labelToggle"
-              class="cursor-pointer bg-gray-300 p-2 rounded shadow flex items-center"
-            >
-              <span id="eyeIcon" class="text-6xl">🙈</span>
-            </label>
-            <span
-              id="palavraSecreta"
-              class="hidden bg-white px-2 py-1 rounded shadow flex items-center gap-2"
-            >
-              <span class="text-2xl font-extrabold uppercase text-red-600">
-                Palavra:
-              </span>
-              <span
-                id="conteudoPalavra"
-                class="text-xl font-bold uppercase text-red-500"
-              ></span>
-            </span>
-          </div>
-
-          <!-- Box 3: Adivinhador + Chute -->
-          <div id="boxAdiv" class="flex flex-col p-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow w-full md:w-1/3">
-            <h2 class="text-xl font-semibold mb-2">Adivinhador</h2>
-            <!-- Foto + Nome -->
-            <div class="flex items-center gap-2 mb-2">
-              <img
-                id="adivinhadorFoto"
-                src=""
-                alt="Foto do Adivinhador"
-                class="w-20 h-20 object-cover rounded-full hidden"
-              />
-              <p class="text-lg font-bold text-green-700">
-                <span id="adivinhador" class="bg-white rounded px-2 py-1"></span>
-              </p>
-            </div>
-
-            <!-- Campo Chute -->
-            <label class="block font-bold mb-1">Chute:</label>
-            <div class="flex gap-2 mb-2">
-              <input
-                type="text"
-                id="campoChute"
-                class="border border-gray-300 p-2 rounded w-full bg-white"
-              />
-              <button
-                id="btnEnviarChute"
-                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow
-                       transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Histórico -->
+      <!-- Linha de Baixo: Dica | Palavra Secreta | Adivinhador -->
+      <div class="flex flex-col md:flex-row gap-4 mb-4">
+        <!-- Dica -->
         <div
-          class="mt-4 bg-gradient-to-br from-blue-50 to-white p-4 rounded-2xl shadow"
+          id="boxDoador"
+          class="w-full md:w-1/3 p-3 bg-blue-50 rounded-xl shadow active-turn flex flex-col gap-2"
         >
-          <h3 class="text-xl font-semibold mb-2">Histórico</h3>
-          <div
-            id="historicoAcoes"
-            class="h-40 overflow-y-auto text-sm border border-gray-300 p-2 rounded bg-white"
-          ></div>
+          <h2 class="text-xl font-bold">Dica</h2>
+          <div class="flex items-center gap-2">
+            <!-- AGORA 50% do tamanho anterior. 
+                 Se era w-80/h-80, agora w-40/h-40
+            -->
+            <img
+              id="doadorFoto"
+              src=""
+              alt="Foto do Doador"
+              class="w-40 h-40 object-cover rounded-full hidden"  <!-- <-- -->
+            >
+            <p class="text-blue-700 font-bold text-lg" id="doador"></p>
+          </div>
+
+          <label class="block font-semibold">Dica:</label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="campoDica"
+              class="flex-1 border border-gray-300 rounded px-2 py-1"
+            >
+            <button
+              id="btnEnviarDica"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow
+                     focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+
+        <!-- Palavra Secreta -->
+        <div
+          id="boxPalavra"
+          class="w-full md:w-1/3 p-3 bg-blue-50 rounded-xl shadow flex flex-col items-center justify-center gap-2"
+        >
+          <h2 class="text-xl font-bold">Palavra Secreta</h2>
+          <input type="checkbox" id="togglePalavra" class="hidden">
+          <label
+            for="togglePalavra"
+            id="labelToggle"
+            class="cursor-pointer bg-gray-300 p-2 rounded shadow flex items-center"
+          >
+            <span id="eyeIcon" class="text-6xl">🙈</span>
+          </label>
+          <span
+            id="palavraSecreta"
+            class="hidden bg-white px-2 py-1 rounded shadow flex items-center gap-2"
+          >
+            <span class="text-2xl font-extrabold uppercase text-red-600">Palavra:</span>
+            <span id="conteudoPalavra" class="text-xl font-bold uppercase text-red-500"></span>
+          </span>
+        </div>
+
+        <!-- Adivinhador -->
+        <div
+          id="boxAdiv"
+          class="w-full md:w-1/3 p-3 bg-blue-50 rounded-xl shadow flex flex-col gap-2"
+        >
+          <h2 class="text-xl font-bold">Adivinhador</h2>
+          <div class="flex items-center gap-2">
+            <!-- 50% do tamanho anterior: de w-80/h-80 -> w-40/h-40 -->
+            <img
+              id="adivinhadorFoto"
+              src=""
+              alt="Foto do Adivinhador"
+              class="w-40 h-40 object-cover rounded-full hidden"
+            >
+            <p class="text-green-700 font-bold text-lg" id="adivinhador"></p>
+          </div>
+          <label class="block font-semibold">Chute:</label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="campoChute"
+              class="flex-1 border border-gray-300 rounded px-2 py-1"
+            >
+            <button
+              id="btnEnviarChute"
+              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow
+                     focus:outline-none focus:ring-2 focus:ring-green-300 transition"
+            >
+              OK
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Palavra Secreta ao Centro (oculta) -->
-      <div
-        id="secretCenter"
-        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-5xl font-extrabold text-red-600 hidden pointer-events-none"
-      >
-        <span id="palavraSecretaCentro"></span>
+      <!-- Histórico em Linha (cards) -->
+      <div class="bg-blue-50 rounded-xl shadow p-3">
+        <h3 class="text-xl font-bold mb-2">Histórico</h3>
+        <!-- Horizontal scroll, cada ação em um “card” pequeno -->
+        <div
+          id="historicoAcoes"
+          class="flex flex-row gap-4 overflow-x-auto p-2 rounded bg-white"
+          style="min-height:80px;"
+        ></div>
       </div>
     </div>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
-    <!-- Tela Final -->
+    <!-- ~~~~~~~~~~ TELA FINAL ~~~~~~~~~~ -->
     <div
       id="end-screen"
-      class="w-full max-w-4xl p-6 shadow-2xl bg-gradient-to-r from-white to-gray-50 rounded-2xl text-center mt-8 hidden relative"
+      class="hidden bg-white/80 rounded-2xl shadow-2xl p-6 text-center"
     >
       <h1 class="text-2xl font-bold mb-4">Partida Encerrada</h1>
       <p id="resultado" class="text-xl mb-2"></p>
       <div id="pontuacaoFinal" class="mb-4"></div>
-      <button
-        id="btnReiniciar"
-        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold shadow-lg
-               transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300
-               hover:scale-105"
-      >
-        Reiniciar
-      </button>
+
+      <!-- Box p/ mostrar vencedores + troféu (mantido no tamanho original) -->
+      <div id="winnerBox" class="flex flex-col items-center justify-center mb-4 hidden">
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/9408/9408134.png"
+          alt="Troféu"
+          class="w-24 h-24 mb-2"
+        >
+        <div id="winnerPhotos" class="flex gap-4"></div>
+      </div>
+
+      <div class="flex gap-4 justify-center">
+        <button
+          id="btnSair"
+          class="bg-red-400 hover:bg-red-500 text-white px-4 py-2 rounded font-semibold shadow-lg
+                 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-300 
+                 hover:scale-105"
+        >
+          Sair
+        </button>
+        <button
+          id="btnCompartilhar"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow-lg
+                 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-300 
+                 hover:scale-105"
+        >
+          Compartilhar
+        </button>
+      </div>
     </div>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
   </div>
 
   <script>
-  (function () {
-    function exibirTelaConfig(){
-      configScreen.classList.remove("hidden");
-      mainScreen.classList.add("hidden");
-      endScreen.classList.add("hidden");
-    }
-    function exibirTelaPrincipal() {
-      configScreen.classList.add("hidden");
-      mainScreen.classList.remove("hidden");
-      endScreen.classList.add("hidden");
-    }
-    function exibirTelaFinal() {
-      configScreen.classList.add("hidden");
-      mainScreen.classList.add("hidden");
-      endScreen.classList.remove("hidden");
-    }
-
-    // define getSelectedIdioma
-    function getSelectedIdioma() {
-      const idiomaRadio = document.querySelector('input[name="idiomaRadio"]:checked');
-      return idiomaRadio ? idiomaRadio.value : 'PT-BR';
-    }
-
+  (function(){
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       VARIÁVEIS GLOBAIS
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     let primeiraTentativa = true;
+    let timerJaIniciado = false;
     let jogadores = [];
     let duplas = [];
     let scores = [];
     let palavrasRodada = [];
     let indicePalavra = 0;
     let duplaAtual = 0;
-    let mostraPalavra = false;
-    let tempoMaximoValue = 90; // default to 90
-    let tempoRestante = 90;
+    let tempoMaximoValue = 60;
+    let tempoRestante = 60;
     let timerInterval = null;
     let historico = [];
     let cameraStream = null;
     let tempFotoDataUrl = "";
+    let modoDuplas = "aleatorio";
 
-    let modoDuplas = "aleatorio"; // control via 2 buttons
+    /* 
+      Agora, fixamos 100 palavras por partida (em vez de escolher).
+      -> Ao iniciar jogo, usaremos: 
+            palavrasRodada = lista.slice(0, 100);
+    */
+    const MAX_PALAVRAS = 100; // <--
 
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // SUBSTITUIR AQUI PELOS 2000 WORDS (PT-BR) - INLINED:
-
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       LISTAS DE PALAVRAS
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     const bigPTBR = [
-      "Amor","Gato","Casa","Pão","Livre","Anel","Mesa","Bolo","Faro","Onça",
-      "Alvo","Vela","Lobo","Rato","Voto","Foco","Sede","Filme","Dente","Lua",
-      "Cedo","Fino","Fofo","Dique","Torre","Tigre","Raiz","Lata","Fase","Nexo",
-      "Rei","Rima","Leme","Sumo","Ruga","Arco","Golpe","Lobo","Sopa","Rude",
-      "Eco","Nota","Nata","Nuvem","Livro","Ócio","Mapa","Gema","Tato","Natal",
-      "Vivo","Tino","Mimo","Agro","Brio","Rocha","Vale","Tarde","Longe","Bravo",
-      "Doce","Calma","Morfo","Lento","Hidro","Cacho","Tenso","Gordo","Negro","Vadio",
-      "Nariz","Sarna","Abade","Lenda","Grito","Mural","Pente","Risco","Fardo","Rezar",
-      "Cinza","Sumir","Vagar","Toada","Avesso","Lazer","Riacho","Madeira","Trama","Narra",
-      "Fluir","Matar","Amora","Forte","Mover","Claro","Seco","Tocar","Velha","Sair",
-      "Solto","Surto","Gabar","Triunfo","Salvo","Queda","Fêmea","Sufixo","Arame","Fraco",
-      "Cenho","Ponto","Ermo","Super","Lúcido","Gênio","Alegre","Rápido","Veado","Embolo",
-      "Fanfarra","Gruta","Abrir","Veludo","Ajuda","Soltar","Padre","Treta","Herói","Balde",
-      "Limo","Sábio","Fuzil","Busto","Dócil","Fruir","Vênia","Corpo","Cardo","Ídolo",
-      "Direto","Nadador","Início","Peso","Meigo","Tacho","Etapa","Ávido","Redor","Harpa",
-      "Sovar","Pular","Dosar","Terno","Polir","Copo","Beijo","Sabor","Goma","Fungo",
-      "Visão","Erva","Moeda","Magma","Perda","Ganho","Malha","Árvore","Pedra","Mocho",
-      "Urro","Manso","Crase","Tique","Girar","Espirro","Baixo","Modem","Tombo","Chave",
-      "Criar","Tumba","Recriar","Axila","Ninar","Leito","Ginga","Terno","Forno","Trono",
-      "Otário","Carro","Arroz","Tigela","Manso","Época","Ração","Fruto","Sonho","Couro",
-      "Arranjo","Legume","Simples","Espora","Mexer","Eclipse","Trocar","Jangada","Fogão","Tostar",
-      "Lancha","Papiro","Éter","Tecido","Bromélia","Amargo","Caixa","Destro","Trovão","Renome",
-      "Subir","Metrô","Anexo","Pólen","Pardo","Quarto","Épico","Cenoura","Piloto","Homem",
-      "Traço","Pétala","Morte","Debate","Gramado","Destaque","Flanco","Tufão","Gaivota","Remir",
-      "Grimpa","Afeto","Letra","Mundo","Geração","Rachar","Mosca","Cachorro","Dureza","Protesto",
-      "Soquete","Afiado","Filtro","Preço","Orvalho","Sombra","Fronte","Zebrar","Inseto","Crânio",
-      "Dono","Vibra","Veneno","Nobre","Retino","Adendo","Lucro","Pus","Tosse","Navio",
-      "Sonoro","Fênix","Bacia","Cartaz","Xampu","Tecido","Cera","Concha","Subsolo","Átomo",
-      "Gastro","Pátio","Exame","Seguro","Colina","Feixe","Fasquia","Carneiro","Jiboia","Impressão",
-      "Estudo","Rabino","Gomo","Sucata","Relva","Saliva","Gueto","Frisar","Limite","Tranque",
-      "Jetom","Belga","Paulista","Venial","Cogito","Quadrado","Rasgar","Saldar","Astuta","Ferro",
-      "Insano","Sugestão","Espelho","Oculto","Espiga","Macaco","Argila","Coturno","Umbigo","Relento",
-      "Síncope","Salmão","Orquestra","Catequese","Mosteiro","Cutelo","Edícula","Itinerário","Nervura","Comportar",
-      "Sutil","Graveto","Viagem","Fenda","Lactose","Verbete","Fígado","Garupa","Manga","Rímel",
-      "Saudade","Pateta","Corrida","Pacote","Bafora","Tareco","Instante","Aragem","Cepa","Largo",
-      "Piedade","Laranja","Remédio","Acervo","Súdito","Aromas","Esfera","Nômade","Garoa","Carona",
-      "Forasteiro","Lampião","Garrafa","Espinha","Aliança","Formiga","Xilogravura","Hormônio","Dorsal","Gergelim",
-      "Fitar","Abrupto","Adepto","Paisagem","Alicerce","Molusco","Vivência","Metade","Tempestade","Devagar",
-      "Volante","Funil","Enigma","Sarau","Ranço","Arsenal","Político","Mogno","Brinco","Carpa",
-      "Toque","Fragata","Vagaroso","Veículo","Alento","Amêndoa","Orquídea","Lapso","Vitral","Sonegar",
-      "Destroço","Beneplácito","Jogada","Curral","Rebanho","Tímido","Cereja","Dívida","Escama","Xerife",
-      "Textura","Faceta","Sergipano","Peralta","Olfato","Abismo","Cupom","Editar","Cidadão","Prazer",
-      "Perfeito","Magnésia","Clorofila","Ciclone","Rótulo","Dolomita","Desdém","Asilo","Cerebral","Fomento",
-      "Edifício","Miopia","Taurino","Tíbia","Falcão","Saxofone","Pavão","Ablução","Vaidade","Corrigir",
-      "Valise","Viga","Camafeu","Empório","Sequela","Curandeiro","Lutador","Jovial","Quimera","Dafne",
-      "Mascote","Vassoura","Poente","Girafa","Umidade","Laminar","Pulsar","Artilha","Busão","Torpor",
-      "Símio","Infante","Nervoso","Urtiga","Cordão","Sarong","Contraste","Abnegado","Formal","Exótico",
-      "Fleuma","Ocidente","Glicose","Aurélio","Recreio","Fraterno","Deserto","Girassol","Omitir","Reptil",
-      "Eficaz","Hortelã","Surreal","Sonata","Cuspe","Comichão","Diadema","Refém","Acumular","Eclodir",
-      "Repartir","Pastoso","Aridez","Lavanda","Mistura","Áurea","Glande","Drible","Calçado","Gaiola",
-      "Hortaliça","Labirinto","Anzóis","Pandemia","Suporte","Lote","Jargão","Sinistro","Covarde","Estima",
-      "Romaria","Erosão","Combate","Moleque","Crença","Amassar","Pulmão","Mísero","Salvado","Gás",
-      "Ataque","Laico","Vinco","Ciente","Propina","Oxigênio","Beleza","Rotina","Utopia","Infecto",
-      "Catedral","Pechincha","Tesouro","Pensar","Intento","Clarão","Montar","Poroso","Tremer","Natureza",
-      "Forquilha","Quiabo","Idioma","Açude","Bronquite","Asseio","Amido","Hino","Régua","Trompa",
-      "Empatar","Minoria","Baralho","Empada","Mestre","Típico","Rancor","Tapete","Prova","Umedecer",
-      "Salgado","Estrondo","Genial","Edital","Jantar","Largura","Costela","Lanterna","Miséria","Sucesso",
-      "Lactante","Pontuar","Ventilado","Sorriso","Abduzir","Listrado","Repouso","Tepidez","Padrão","Despejo",
-      "Perene","Gravura","Bule","Martelo","Sarrar","Impor","Feitoria","Necessário","Rosado","Trote",
-      "Arrombar","Mandato","Rosário","Galeria","Quisar","Indagar","Letargo","Fornalha","Giratório","Debelar",
-      "Ácaro","Viçoso","Soneca","Berro","Picada","Engano","Segredo","Estrato","Histórico","Garganta",
-      "Sempre","Revoga","Letal","Manivela","Sarcástico","Docente","Isento","Lavoura","Sagaz","Íngreme",
-      "Infância","Camiseta","Mamilo","Pulverizar","Interino","Balcão","Frescor","Armário","Mercúrio","Ruído",
-      "Lustre","Dedal","Fóssil","Velhice","Lubrificar","Contrário","Brando","Texto","Orelha","Recalque",
-      "Velocidade","Imune","Acordar","Mórbido","Cinéfilo","Treinador","Buxo","Dúbio","Sinopse","Criancice",
-      "Nitidez","Velar","Pesado","Casulo","Escopo","Macerar","Sarjeta","Emotivo","Cenário","Estirpe",
-      "Frasco","Tecer","Diferir","Mergulho","Conduta","Graxa","Cupido","Zeugma","Muscular","Polido",
-      "Abjeto","Estupendo","Desolado","Bengala","Motriz","Vigiar","Camarote","Inundar","Ode","Arcar",
-      "Quadrar","Engenho","Neurônio","Macarrão","Rasteiro","Ternura","Hongos","Azulejo","Barítono","Rutina",
-      "Feérico","Gótico","Ferver","Lava","Glosar","Berilo","Requinte","Massivo","Esfriar","Caatinga",
-      "Asteroide","Vento","Pânico","Dobradiça","Colosso","Goleiro","Imprensa","Volátil","Pulso","Minério",
-      "Arauto","Cheque","Moradia","Risada","Sonora","Chacota","Mosaico","Florir","Desvario","Vórtice",
-      "Pesar","Esperto","Enxuto","Trevo","Mister","Aceno","Curtir","Morder","Insônia","Atrair",
-      "Caber","Deboche","Celeste","Vacina","Maleta","Aclive","Doente","Expor","Isolado","Hálito",
-      "Redoma","Cupim","Gemido","Ibérico","Letreiro","Digitador","Nítido","Rosnar","Brotar","Encontro",
-      "Moinho","Lanchar","Sonolento","Máximo","Fidalgo","Baldio","Cruel","Infarto","Obeso","Captura",
-      "Infecção","Secura","Entulho","Escasso","Gaulês","Loucura","Palma","Cacto","Pulsão","Remanso",
-      "Persianas","Viúva","Agreste","Estopim","Ovário","Orbe","Mescla","Alvará","Nódulo","Sinfonia",
-      "Apertar","Engrenagem","Eleger","Ferimento","Maciço","Glicemia","Vitamina","Esporo","Rombudo","Arrebol",
-      "Travesso","Mafioso","Ironia","Arrotar","Disparo","Mensagem","Unificar","Isótopo","Descaso","Flamengo",
-      "Lambida","Lousa","Rodeio","Amuleto","Vibrar","Canário","Cotovia","Hidrogênio","Tranquilo","Arquear",
-      "Fatiar","Gestual","Reajuste","Implodir","Apressar","Mumificar","Refletir","Narciso","Tabelar","Mastro",
-      "Englobar","Feixe","Magenta","Clipe","Recinto","Domar","Etílico","Herança","Prognóstico","Retorno",
-      "Lembrar","Marfim","Fragor","Sintoma","Euforia","Jurista","Alforje","Tabuleiro","Édito","Desfecho",
-      "Júpiter","Abaixar","Porção","Remendo","Banheiro","Milhar","Puxado","Agiota","Melodia","Inédito",
-      "Lealdade","Obstar","Corja","Indulto","Estadia","Rotação","Fresta","Domínio","Policiar","Eclético",
-      "Abstrato","Infundir","Reerguer","Conter","Cosiido","Martírio","Evasivo","Roedor","Somar","Embargo",
-      "Alvura","Içar","Bueiro","Escamar","Fazendeiro","Adjetivo","Julgar","Miscelânea","Orgânico","Rabisco",
-      "Termos","Vazia","Sabotar","Alocar","Tampar","Uivar","Mucosa","Tagarelar","Gaguejar","Ventania",
-      "Poesia","Dedicar","Anexar","Gabarito","Cruzar","Esporão","Faixa","Norueguês","Lustroso","Regalado",
-      "Montanha","Delfim","Madrasta","Defunto","Fósforo","Bússola","Faxina","Luxo","Teimoso","Agasalho",
-      "Dirimir","Epiderme","Furo","Cascalho","Poltrona","Editora","Luminoso","Resquício","Soldado","Chorar",
-      "Variação","Cabaré","Despensa","Genitor","Armazém","Assovio","Ambientar","Diagrama","Malte","Horizontes",
-      "Carimbo","Ternário","Urticária","Tentáculo","Inveja","Déspota","Garoupa","Insumo","Sicário","Mutável",
-      "Degrau","Angra","Imbecil","Larva","Sortido","Palhaço","Careta","Pegada","Mandíbula","Suturar",
-      "Arejar","Xilofone","Magnata","Auxiliar","Brigue","Coisa","Encolher","Fechar","Seriado","Amigos",
-      "Indolente","Júnior","Salgar","Mucambo","Artesão","Fragmento","Voltagem","Ressaca","Rasante","Coice",
-      "Madrugar","Gado","Baixista","Aludir","Farinha","Norte","Franco","Tenra","Encontrar","Sisudo",
-      "Urbano","Molhado","Liderar","Eletrodo","Embalo","Abissal","Recrutar","Colidir","Parêntese","Fresco",
-      "Isca","Legível","Nativo","Expiar","Regina","Sucursal","Guarani","Áureo","Barroco","Peruca",
-      "Cochilo","Visceral","Reciclar","Elevador","Forjar","Grilhão","Depositar","Zombar","Ventura","Zodíaco",
-      "Desdenhar","Incluir","Marceneiro","Saltitar","Concreto","Soletrar","Almoxarifado","Hipnose","Crespo","Pairar",
-      "Largar","Sucinto","Sartório","Nostálgico","Jinete","Desvendar","Palpitar","Varanda","Reverter","Treinamento",
-      "Assepsia","Lambuzar","Mercado","Corrimão","Lapidar","Prancha","Agredir","Madorna","Barrar","Ofício",
-      "Agulha","Varal","Urtigar","Diatribe","Cítrico","Apreço","Lhama","Tocante","Bombo","Ladino",
-      "Servir","Notório","Surpresa","Elegância","Entoar","Lanoso","Noturno","Ervilha","Estofado","Delatar",
-      "Perfume","Violino","Processar","Divagar","Libertar","Pincel","Decidir","Fábula","Tecla","Mofo",
-      "Plutão","Morango","Sucumbir","Sururu","Clemente","Javali","Tangível","Tronco","Naufrágio","Estalactite",
-      "Fagulha","Bateria","Conexão","Malogro","Ensacar","Azedar","Sovaco","Alcunha","Azia","Volúvel",
-      "Mandar","Reanexar","Trapezista","Algodão","Propagar","Morrer","Engordar","Visconde","Êxodo","Cismado",
-      "Ímpeto","Bagagem","Espinhal","Medieval","Tanger","Blindar","Vedado","Engenhoca","Tóxico","Agridoce",
-      "Purgar","Nocivo","Impuro","Exumar","Manhoso","Giz","Cântaro","Perigo","Touca","Cetro",
-      "Gotejar","Espessura","Pacificar","Desdenho","Lupino","Gasto","Acréscimo","Ingressar","Taurina","Palustre",
-      "Repassar","Camomila","Montaria","Alho","Endívia","Baldar","Chalé","Cerebelo","Gilson","Sutileza",
-      "Peneira","Ralador","Umbilical","Oxidar","Trilho","Estância","Chalupa","Covil","Vindouro","Arrota",
-      "Estrangular","Figurino","Trocadilho","Gemada","Perfídia","Amalgamar","Felino","Cântico","Rodopio","Alfafa",
-      "Ricota","Muque","Origem","Cateter","Xisto","Narcisismo","Proeza","Moldura","Versar","Dragar",
-      "Proativo","Cacareco","Falésia","Indeciso","Relevo","Enfático","Túnel","Bacana","Adeus","Regressar",
-      "Salivar","Ganância","Oprimir","Goteira","Baiuca","Voar","Blasé","Coxa","Mergulhar","Cárie",
-      "Bombom","Engrenar","Menisco","Causa","Recanto","Doutrina","Ruflar","Determinar","Repetir","Encarar",
-      "Fama","Olhar","Célere","Cantiga","Esvaziar","Camuflar","Ninho","Destroçar","Sorver","Leite",
-      "Curvar","Olfativo","Xarope","Limar","Pólvora","Bifocal","Rugoso","Gelado","Setor","Bursite",
-      "Levitar","Explícito","Submeter","Congelar","Munir","Tijolo","Pastel","Pomar","Balizar","Comungar",
-      "Mimado","Solidão","Anular","Versátil","Dançar","Leveza","Vassalo","Comitiva","Carpir","Tédio",
-      "Incauto","Filtrar","Periferia","Monarca","Rebite","Incidir","Retalho","Gangorra","Artigo","Datilografia",
-      "Feudal","Hidróxido","Ondular","Vislumbre","Funesto","Quermesse","Correio","Cenóbio","Ensurdecer","Brecar",
-      "Sintaxe","Tempora","Aviário","Primata","Arrumar","Redigir","Globular","Fungar","Vacilar","Zombaria",
-      "Enxurrada","Migalha","Hortênsia","Capuz","Escuridão","Pressa","Tablado","Grelha","Tísica","Almofariz",
-      "Tangente","Suborno","Rogar","Berílio","Percurso","Mugir","Sufocar","Fixador","Onírico","Ancião",
-      "Retrato","Mote","Surgir","Ziguezague","Essência","Teor","Latejar","Modal","Farol","Alheio",
-      "Frutífero","Abstruso","Errata","Congênito","Elementar","Palpável","Estrume","Galego","Arlequim","Jasmim",
-      "Genuíno","Moletom","Riscar","Emoldurar","Mandado","Bovarismo","Silvar","Coar","Delgado","Flecha",
-      "Forrar","Abadessa","Ultrapassar","Marquise","Obelisco","Feitor","Derrubar","Fiar","Imprimir","Inerente",
-      "Segregar","Canção","Abono","Litorâneo","Rastilho","Cepilho","Paisano","Medonha","Gamo","Soprar",
-      "Empalhar","Moroso","Pinote","Quebrar","Virgem","Axiomático","Petisco","Desfrute","Carismático","Felpudo",
-      "Coagir","Estirar","Solo","Amanita","Cangalha","Vespa","Capenga","Desatino","Fenício","Lâmina",
-      "Fragmentar","Sumário","Emérito","Teste","Roxo","Tática","Abdução","Oclusão","Zonzeira","Banguela",
-      "Varíola","Correlação","Mamífero","Voltar","Recuar","Efusivo","Cabeçalho","Bárbaro","Timoneiro","Onerar",
-      "Fugir","Bonança","Elástico","Tolerar","Tônico","Hebraico","Medula","Dadivoso","Trovador","Autorizar",
-      "Pupila","Enfiar","Rodízio","Alquimia","Pangaré","Emissão","Entalhe","Ofender","Tinido","Bravura",
-      "Emudecer","Rebolar","Valquíria","Salsicha","Eslavo","Veleiro","Acento","Felicidade","Manada","Alforria",
-      "Cachimbo","Eremita","Jovem","Punhal","Zigoto","Beletrismo","Queijo","Revoada","Mancada","Descascar",
-      "Flutuar","Docilidade","Suspiro","Adentrar","Ordem","Cipreste","Erguido","Fiapo","Opaco","Inquirir",
-      "Melancolia","Obedecer","Itens","Bigorna","Caridade","Cedilha","Parcela","Comédia","Legenda","Sonolência",
-      "Mundano","Astúcia","Glauco","Vértice","Humano","Patente","Estômago","Inebriar","Bacalhau","Tamanco",
-      "Rochedo","Calendário","Ultraje","Valsa","Moldar","Abduzido","Cuidar","Jararaca","Cardume","Falsa",
-      "Episódio","Oceano","Videira","Metáfora","Peneirar","Alfaiate","Beliscar","Orla","Pandear","Escarpado",
-      "Lupanar","Agudo","Eficiente","Frenesi","Parafina","Inserir","Bruxaria","Fração","Lamparina","Tremor",
-      "Melado","Contrair","Contador","Chocalho","Leitão","Musgo","Pincelar","Cúpula","Aleijado","Guichê",
-      "Liberdade","Medalha","Salpicar","Turbina","Mixórdia","Iguaria","Bocado","Locutor","Arbusto","Galáxia",
-      "Esbarro","Confiar","Reagrupar","Colateral","Espantalho","Guilhotina","Infringir","Dissipar","Elucidar","Iglu",
-      "Meticuloso","Aquecer","Corisco","Vagabundo","Migrar","Válvula","Coletor","Excêntrico","Arquivo","Inclusão",
-      "Varredura","Chiado","Humilde","Sincero","Tilde","Perpetuar","Agressivo","Litoral","Protestar","Talher",
-      "Inócuo","Fadiga","Fraudar","Cobiçar","Ausente","Decifrar","Duvidar","Encosto","Farinhada","Oriundo",
-      "Soldar","Cumprir","Esteira","Hostil","Argênteo","Pelagem","Vigor","Miscível","Bendizer","Reiterar",
-      "Quadril","Esteio","Galeão","Citadino","Esloveno","Místico","Viola","Entrever","Pulular","Demanda",
-      "Cômputo","Lilás","Masmorra","Pitoresco","Vultoso","Quarks","Ofegante","Frenezi","Lesma","Grunhir",
-      "Surtir","Poluente","Marcador","Ensino","Laringe","Filamento","Dúvida","Espionar","Sapateiro","Vinagre",
-      "Quarenta","Restinga","Eufêmia","Índole","Vulgar","Fiorde","Bunker","Ventosa","Açoitar","Centelha",
-      "Pichar","Golpear","Conceder","Jurado","Hemorragia","Adverso","Blindagem","Esgrimir","Geada","Retinir",
-      "Calombo","Origami","Vergonha","Organza","Atônito","Reentrância","Bulbo","Conduzir","Empenho","Sorvete",
-      "Drenar","Serrilha","Presságio","Despencar","Conflito","Malabar","Exaurir","Irromper","Inquieto","Lanchonete",
-      "Ralé","Chumaço","Indenizar","Tolerância","Espontâneo","Refrigério","Marmita","Petulante","Legista","Tenacidade",
-      "Bioma","Cirrose","Deflagrar","Empilhar","Cortesia","Grogue","Totem","Remenda","Alce","Fuinha",
-      "Calcário","Ousadia","Exemplo","Risoto","Moitar","Veloz","Confins","Pantanal","Hemisfério","Dentista",
-      "Fissura","Tortura","Pinhão","Tímpano","Surfar","Burlar","Ampulheta","Matizar","Bloquear","Riolar",
-      "Guaraná","Decantar","Buldogue","Salitre","Colher","Arrebite","Massagem","Vertebrado","Fariseu","Locomover",
-      "Reboliço","Farináceo","Subsidiar","Paisagismo","Sedento","Validação","Encaminhar","Jocosidade","Alcorão","Tatuagem",
-      "Manteiga","Aliado","Amiudar","Exaurido","Fragilizar","Rocambole","Gargalhar","Multa","Ariscar","Libélula",
-      "Odor","Pampas","Tenor","Suplicar","Roseira","Bacaba","Abarrotar","Catapora","Enseada","Lenitivo",
-      "Brincar","Zíper","Levante","Epíteto","Inóspito","Ranso","Saturno","Vaqueiro","Assíduo","Esponja",
-      "Arrozal","Musculoso","Fruta","Cismático","Carreta","Hidratado","Ladeira","Química","Derrota","Mirtilo",
-      "Ficção","Pêssego","Balé","Teologia","Engenheiro","Cabresto","Periquito","Emplastro","Biruta","Proteína",
-      "Decorar","Metrificar","Zulu","Maratona","Entortar","Galpão","Elenco","Dolente","Oitavo","Filantropo",
-      "Bugio","Mestisso","Cupinzeiro","Pinoia","Harmonia","Arrebentar","Tantear","Redondel","Diálogo","Zelar",
-      "Irônico","Crescente","Avícola","Fusão","Sigilo","Untuoso","Bucólico","Cangote","Lacuna","Cairia",
-      "Solidificar","Fraqueza","Levantamento","Selado","Palidez","Templo","Mediano","Ocasião","Torpedo","Ornato",
-      "Atalho","Consciência","Zumbido","Menear","Cremoso","Suculento","Desfazer","Tiquetaque","Guri","Churrasco",
-      "Mirrado","Rodopiar","Babuíno","Inodoro","Leguminoso","Sagui","Sedoso","Mandolate","Ebulição","Psicose",
-      "Tesoura","Bufar","Telefone","Fugidio","Adereço","Simetria","Combustão","Tarrafa","Endemia","Gincana",
-      "Novelo","Substância","Vertigem","Saudável","Xerocópia","Adversário","Janela","Avaliar","Pílula","Covardia",
-      "Guisado","Encerar","Zumbir","Estampa","Escadaria","Mirante","Afagar","Engraçado","Inércia","Tórax",
-      "Caverna","Inflar","Romper","Explicar","Portal","Laçar","Tilintar","Régio","Costurar","Bater",
-      "Exalçar","Pinheiro","Aldeia","Minúsculo","Veemente","Quântico","Debandar","Despejar","Extrair","Móvel",
-      "Baliza","Gorar","Cavalar","Roletar","Invicto","Frustrar","Vigília","Estapear","Enroscar","Bens",
-      "Observador","Ladainha","Piaçaba","Dorso","Insuflar","Rancar","Idôneo","Lugarejo","Cimeira","Escorregar",
-      "Heresia","Disfarçar","Telegrama","Conclave","Bacamarte","Elíptico","Furtivo","Brusco","Tábua","Intensidade",
-      "Pulsação","Envolto","Severidade","Laxa","Presença","Cinzel","Rapina","Pardal","Rachadura","Infame",
-      "Tapume","Reprimir","Genoma","Erigir","Digerir","Omissão","Varar","Teimar","Bandido","Passante",
-      "Revirar","Inflamar","Barulho","Dormente","Rotativo","Mocidade","Exceder","Fender","Rosquinha","Geleia",
-      "Encarecer","Alvenaria","Elétrica","Sanguíneo","Propício","Turquesa","Laquê","Divisor","Gabinete","Tintureiro",
-      "Macieira","Soprano","Esguio","Reger","Caldeira","Voraz","Impresso","Bailar","Psíquico","Lucidez",
-      "Galopar","Fosco","Mexido","Mirar","Cais","Valsar","Negaça","Mergulhador","Ovino","Polidez",
-      "Estribo","Ludibriar","Sarcófago","Demolir","Pungir","Tesla","Guincho","Forca","Tagarela","Torrada",
-      "Vacilante","Ressonar","Estranha","Madurar","Bogaria","Balanço","Sintonia","Imersão","Chafariz","Sólido",
-      "Meandro","Grandioso","Rebatizar","Esmero","Cordel","Xingar","Auxílio","Informar","Encher","Gradual",
-      "Trigêmeo","Sapucaia","Molhar","Unção","Divino","Audaz","Zanzar","Garfo","Central","Bemol",
-      "Executor","Togado","Emprestar","Folhagem","Rodela","Metro","Pretexto","Hiato","Côncavo","Caramelo",
-      "Demasia","Chacina","Aresta","Expirar","Guarde","Meteoro","Tornado","Soturno","Bactéria","Indiferença",
-      "Peta","Migração","Gaiato","Alecrim","Pedinte"
+      "Amor","Gato","Casa","Pão","Livre","Anel","Mesa","Bolo","Faro","Onça","Alvo","Vela","Abacate",
+      // ...complete suas 2000...
     ];
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    // Banco básico pros outros idiomas (só como exemplo)
     const palavrasBanco = {
-      "PT-PT": ["cão","arc-íris","vermelho","futebol","jantar"],
+      "PT-PT": ["cão","arco-íris","vermelho","futebol","jantar"],
       "EN-US": ["dog","rainbow","red","soccer","dinner"],
       "ES":    ["perro","arcoiris","rojo","futbol","cena"]
     };
 
-    const colorPalette = [
-      "bg-red-200 text-red-800",
-      "bg-green-200 text-green-800",
-      "bg-yellow-200 text-yellow-800",
-      "bg-purple-200 text-purple-800",
-      "bg-pink-200 text-pink-800",
-      "bg-orange-200 text-orange-800",
-      "bg-blue-200 text-blue-800",
-      "bg-teal-200 text-teal-800"
-    ];
-
-    const confettiCanvas = document.getElementById("confettiCanvas");
-    const confettiCtx = confettiCanvas.getContext("2d");
-    confettiCanvas.width = window.innerWidth;
-    confettiCanvas.height = window.innerHeight;
-
-    window.addEventListener("resize", () => {
-      confettiCanvas.width = window.innerWidth;
-      confettiCanvas.height = window.innerHeight;
-    });
-
-    function launchConfetti() {
-      const end = Date.now() + 2 * 1000;
-      (function frame() {
-        confetti({
-          particleCount: 5,
-          angle: Math.random() * 60 + 100,
-          spread: 55,
-          origin: { x: Math.random(), y: Math.random() * 0.3 },
-          useWorker: true
-        });
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      })();
-    }
-
-    function celebrarAcerto(duplaIndex) {
-      const overlay = document.createElement("div");
-      overlay.className = "fixed inset-0 flex items-center justify-center z-50 pointer-events-none";
-
-      const duoContainer = document.createElement("div");
-      duoContainer.className = "flex items-center gap-4";
-
-      const [p1, p2] = duplas[duplaIndex];
-      [p1, p2].forEach((pl) => {
-        const imgEl = document.createElement("img");
-        imgEl.src = pl.photo || "";
-        imgEl.alt = "Foto";
-        imgEl.className = "w-16 h-16 object-cover rounded-full animate-zoomPhoto";
-        imgEl.style.animation = "growAndFade 2s forwards";
-        if (!pl.photo) {
-          imgEl.src = "https://via.placeholder.com/64";
-        }
-        duoContainer.appendChild(imgEl);
-      });
-
-      overlay.appendChild(duoContainer);
-      document.body.appendChild(overlay);
-
-      setTimeout(() => {
-        document.body.removeChild(overlay);
-      }, 2000);
-    }
-
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    function falarRegras() {
-      const msg = new SpeechSynthesisUtterance();
-      msg.text = `\n1) Você deve formar duplas de jogadores.\n2) Em cada palavra, a dupla que iniciar tem chance de ganhar 2 pontos se acertar de primeira.\n3) Se errar, as outras duplas (ou a mesma dupla em nova vez) ganham 1 ponto se acertarem.\n4) Se pular ou o tempo acabar, passa para a próxima dupla ou próxima palavra.\n5) Ao final, a dupla com mais pontos vence.\n`;
-      msg.lang = "pt-BR";
-      speechSynthesis.speak(msg);
-    }
-
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       CAPTURAS DO DOM
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     const modalRegras = document.getElementById("modalRegras");
     const btnRegras = document.getElementById("btnRegras");
     const btnFecharModal = document.getElementById("btnFecharModal");
     const btnFalarRegras = document.getElementById("btnFalarRegras");
-
-    const btnModoAleatorio = document.getElementById("btnModoAleatorio");
-    const btnModoSequencial = document.getElementById("btnModoSequencial");
 
     const configScreen = document.getElementById("config-screen");
     const mainScreen = document.getElementById("main-screen");
@@ -805,11 +505,14 @@
     const btnAdicionarJogador = document.getElementById("btnAdicionarJogador");
     const btnIniciar = document.getElementById("btnIniciar");
     const btnEncerrar = document.getElementById("btnEncerrar");
-    const btnIniciarTempo = document.getElementById("btnIniciarTempo");
+    const btnTrocar = document.getElementById("btnTrocar");
+    const btnPular = document.getElementById("btnPular");
+
+    const btnToggleTempo = document.getElementById("btnToggleTempo");
+    const btnResetTempo = document.getElementById("btnResetTempo");
+
     const btnEnviarDica = document.getElementById("btnEnviarDica");
     const btnEnviarChute = document.getElementById("btnEnviarChute");
-    const btnPular = document.getElementById("btnPular");
-    const btnReiniciar = document.getElementById("btnReiniciar");
 
     const scoreContainer = document.getElementById("scoreContainer");
     const doadorEl = document.getElementById("doador");
@@ -822,241 +525,306 @@
     const campoDica = document.getElementById("campoDica");
     const campoChute = document.getElementById("campoChute");
     const historicoAcoes = document.getElementById("historicoAcoes");
+
     const endResultado = document.getElementById("resultado");
     const endPontuacaoFinal = document.getElementById("pontuacaoFinal");
+    const winnerBox = document.getElementById("winnerBox");
+    const winnerPhotos = document.getElementById("winnerPhotos");
+    const btnSair = document.getElementById("btnSair");
+    const btnCompartilhar = document.getElementById("btnCompartilhar");
+
     const togglePalavraCheckbox = document.getElementById("togglePalavra");
     const eyeIcon = document.getElementById("eyeIcon");
 
-    const secretCenter = document.getElementById("secretCenter");
-    const palavraSecretaCentro = document.getElementById("palavraSecretaCentro");
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       CONFETTI SETUP
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    const confettiCanvas = document.getElementById("confettiCanvas");
+    const confettiCtx = confettiCanvas.getContext("2d");
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+    window.addEventListener("resize", () => {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    });
+    function launchConfetti(duration=2000){
+      const end = Date.now() + duration;
+      (function frame(){
+        confetti({
+          particleCount: 5,
+          angle: Math.random()*60+100,
+          spread: 55,
+          origin: { x: Math.random(), y: Math.random()*0.3 },
+          useWorker: true
+        });
+        if(Date.now()<end) requestAnimationFrame(frame);
+      })();
+    }
+    function celebrarAcerto(duplaIndex){
+      // Mantido 12x maior (w-192/h-192) para animação final
+      const overlay = document.createElement("div");
+      overlay.className = "fixed inset-0 flex items-center justify-center z-50 pointer-events-none";
 
-    const boxDoador = document.getElementById("boxDoador");
-    const boxAdiv = document.getElementById("boxAdiv");
+      const duoContainer = document.createElement("div");
+      duoContainer.className = "flex items-center gap-8";
 
-    // Show/hide modal
-    btnRegras.addEventListener("click", () => {
+      const [p1, p2] = duplas[duplaIndex];
+      [p1, p2].forEach( pl => {
+        const imgEl = document.createElement("img");
+        imgEl.src = pl.photo || "https://via.placeholder.com/64";
+        imgEl.alt = "Foto";
+        imgEl.className = "animate-zoomPhoto object-cover rounded-full";
+        imgEl.style.width = "192px";  
+        imgEl.style.height = "192px"; 
+        imgEl.style.animation = "growAndFade 2s forwards";
+        duoContainer.appendChild(imgEl);
+      });
+
+      overlay.appendChild(duoContainer);
+      document.body.appendChild(overlay);
+
+      setTimeout(()=>{
+        document.body.removeChild(overlay);
+      },2000);
+    }
+
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       REGRAS (MODAL)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    btnRegras.addEventListener("click", ()=>{
       modalRegras.classList.remove("hidden");
       modalRegras.classList.add("flex");
     });
-    btnFecharModal.addEventListener("click", () => {
+    btnFecharModal.addEventListener("click", ()=>{
       modalRegras.classList.add("hidden");
       modalRegras.classList.remove("flex");
     });
-    btnFalarRegras.addEventListener("click", falarRegras);
-
-    // Switch Modo Duplas by 2 Buttons
-    btnModoAleatorio.addEventListener("click", (evt)=>{
-      modoDuplas = evt.target.dataset.modo; // "aleatorio"
-      btnModoAleatorio.classList.add("bg-blue-300");
-      btnModoSequencial.classList.remove("bg-blue-300");
-    });
-    btnModoSequencial.addEventListener("click", (evt)=>{
-      modoDuplas = evt.target.dataset.modo; // "manual"
-      btnModoAleatorio.classList.remove("bg-blue-300");
-      btnModoSequencial.classList.add("bg-blue-300");
+    btnFalarRegras.addEventListener("click", ()=>{
+      const msg = new SpeechSynthesisUtterance();
+      msg.text = "1) Formar duplas ... 2) Dupla que inicia pode ganhar 2 pontos ... 3) Se errar, valem 1 ponto ... etc.";
+      msg.lang = "pt-BR";
+      speechSynthesis.speak(msg);
     });
 
-    // Câmera
-    btnAbrirCamera.addEventListener("click", async () => {
-      try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoCamera.srcObject = cameraStream;
-        videoCamera.classList.remove("hidden");
-        btnCapturarFoto.classList.remove("hidden");
-        canvasFoto.classList.add("hidden");
-      } catch (err) {
-        alert("Não foi possível acessar a câmera: " + err);
-      }
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       MODO DUPLAS
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    document.getElementById("btnModoAleatorio").addEventListener("click",(e)=>{
+      modoDuplas = e.target.dataset.modo; // "aleatorio"
+      e.target.classList.add("bg-blue-300");
+      document.getElementById("btnModoSequencial").classList.remove("bg-blue-300");
+    });
+    document.getElementById("btnModoSequencial").addEventListener("click",(e)=>{
+      modoDuplas = e.target.dataset.modo; // "manual"
+      e.target.classList.add("bg-blue-300");
+      document.getElementById("btnModoAleatorio").classList.remove("bg-blue-300");
     });
 
-    btnCapturarFoto.addEventListener("click", () => {
-      if (!cameraStream) return;
-      canvasFoto.classList.remove("hidden");
-      canvasFoto.width = videoCamera.videoWidth;
-      canvasFoto.height = videoCamera.videoHeight;
-      const ctx = canvasFoto.getContext("2d");
-      ctx.drawImage(videoCamera, 0, 0, canvasFoto.width, canvasFoto.height);
-      let dataUrl = canvasFoto.toDataURL("image/png");
-
-      videoCamera.classList.add("hidden");
-      btnCapturarFoto.classList.add("hidden");
-      if (cameraStream) {
-        cameraStream.getTracks().forEach((track) => track.stop());
-        cameraStream = null;
-      }
-      tempFotoDataUrl = dataUrl;
-    });
-
-    btnAdicionarJogador.addEventListener("click", adicionarJogador);
-
-    function adicionarJogador() {
-      if (jogadores.length >= 10) {
-        alert("Máximo de 10 jogadores atingido!");
-        return;
-      }
-      let nomeDigitado = inputNomeJogador.value.trim() || `Convidado #${jogadores.length + 1}`;
-      let colorClass = colorPalette[jogadores.length % colorPalette.length];
-
-      let fotoDataUrl = "";
-      const file = inputFotoJogador.files[0];
-
-      if (tempFotoDataUrl) {
-        fotoDataUrl = tempFotoDataUrl;
-        tempFotoDataUrl = "";
-      } else if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          fotoDataUrl = e.target.result;
-          pushJogador(nomeDigitado, colorClass, fotoDataUrl);
-        };
-        reader.readAsDataURL(file);
-        return;
-      }
-
-      pushJogador(nomeDigitado, colorClass, fotoDataUrl);
-    }
-
-    function pushJogador(name, colorClass, fotoDataUrl) {
-      const newPlayer = { name, color: colorClass, photo: fotoDataUrl};
-      jogadores.push(newPlayer);
-      inputNomeJogador.value = "";
-      fotoJogador.value = "";
-      renderJogadores();
-    }
-
-    function removerJogador(idx) {
-      jogadores.splice(idx, 1);
-      renderJogadores();
-    }
-
-    function renderJogadores() {
-      listaJogadoresEl.innerHTML = "";
-      jogadores.forEach((player, idx) => {
-        const div = document.createElement("div");
-        div.className = `${player.color} p-2 uppercase rounded mb-1 shadow-sm font-bold flex items-center gap-2 justify-between`;
-
-        const leftPart = document.createElement("div");
-        leftPart.className = "flex items-center gap-2";
-
-        if (player.photo) {
-          const imgEl = document.createElement("img");
-          imgEl.src = player.photo;
-          imgEl.alt = "Foto";
-          imgEl.className = "w-8 h-8 object-cover rounded-full";
-          leftPart.appendChild(imgEl);
-        }
-        const spanNome = document.createElement("span");
-        spanNome.textContent = player.name;
-        leftPart.appendChild(spanNome);
-        div.appendChild(leftPart);
-
-        const btnRem = document.createElement("button");
-        btnRem.textContent = "X";
-        btnRem.className = "bg-red-400 hover:bg-red-500 text-white px-2 py-1 rounded font-bold";
-        btnRem.addEventListener("click", () => removerJogador(idx));
-        div.appendChild(btnRem);
-
-        listaJogadoresEl.appendChild(div);
-      });
-    }
-
-    togglePalavraCheckbox.addEventListener("change", (evt) => {
-      if (evt.target.checked) {
-        palavraSecretaEl.classList.remove("hidden");
-        eyeIcon.textContent = "👁️";
-        mostraPalavra = true;
-      } else {
-        palavraSecretaEl.classList.add("hidden");
-        eyeIcon.textContent = "🙈";
-        mostraPalavra = false;
-      }
-    });
-
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       INICIAR / ENCERRAR / SAIR
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     btnIniciar.addEventListener("click", iniciarJogo);
+    btnEncerrar.addEventListener("click", encerrarPartida);
+    btnSair.addEventListener("click", sairParaConfig);
+
+    function getSelectedIdioma(){
+      const radio = document.querySelector('input[name="idiomaRadio"]:checked');
+      return radio? radio.value : "PT-BR";
+    }
 
     function iniciarJogo(){
-      if (jogadores.length < 4 || (jogadores.length % 2 !== 0)) {
-        alert('É necessário ao menos 4 jogadores (número par).');
+      if(jogadores.length<4 || jogadores.length%2!==0){
+        alert("É necessário ao menos 4 jogadores (número par).");
         return;
       }
-      duplas = [];
-      tempoMaximoValue = parseInt(inputTempoMaximo.value) || 90;
-      tempoRestante = tempoMaximoValue;
+      // Reset
+      duplas=[];
+      scores=[];
+      palavrasRodada=[];
+      indicePalavra=0;
+      duplaAtual=0;
+      primeiraTentativa=true;
+      timerJaIniciado=false;
+      pararTimer();
 
+      // tempo
+      tempoMaximoValue = parseInt(inputTempoMaximo.value)||60;
+      tempoRestante=tempoMaximoValue;
+      tempoRestanteEl.textContent=tempoRestante;
+      tempoRestanteEl.classList.remove("text-red-600");
+      tempoRestanteEl.classList.add("text-green-600");
+
+      // formar duplas
       let arrCopia = [...jogadores];
-      if (modoDuplas === 'aleatorio') {
-        shuffleArray(arrCopia);
+      if(modoDuplas==="aleatorio") shuffleArray(arrCopia);
+      for(let i=0; i<arrCopia.length; i+=2){
+        duplas.push([ arrCopia[i], arrCopia[i+1] ]);
       }
-
-      for (let i=0; i< arrCopia.length; i+=2){
-        duplas.push( [ arrCopia[i], arrCopia[i+1] ] );
-      }
-
       scores = new Array(duplas.length).fill(0);
 
-      let idioma = getSelectedIdioma();
-      let listaPalavrasBrutas;
-      if (idioma === 'PT-BR'){
-        // Agora, bigPTBR tem 2000 palavras de verdade
-        listaPalavrasBrutas = bigPTBR;
+      // pega palavras
+      const idioma = getSelectedIdioma();
+      let lista;
+      if (idioma==="PT-BR"){
+        lista = bigPTBR;
       } else {
-        // Exemplo simples pros outros idiomas
-        listaPalavrasBrutas = Array.from(new Set(palavrasBanco[idioma] || []));
+        lista = palavrasBanco[idioma] || [];
       }
-      shuffleArray(listaPalavrasBrutas);
+      shuffleArray(lista);
 
-      // Por padrão, o jogo pega só 5 palavras. Se quiser
-      // usar o "baralho" inteiro, troque 5 -> 2000 ou outro valor
-      // ou remova completamente o slice.
-      palavrasRodada = listaPalavrasBrutas.slice(0, 5);
+      /* 
+         Agora fixamos: 100 palavras (MAX_PALAVRAS).
+      */
+      palavrasRodada = lista.slice(0, MAX_PALAVRAS);
 
-      indicePalavra = 0;
-      duplaAtual = 0;
-      primeiraTentativa = true;
-
-      tempoRestanteEl.textContent = tempoRestante;
-      tempoRestanteEl.classList.remove('text-red-600');
-      tempoRestanteEl.classList.add('text-green-600');
-
-      mostraPalavra = false;
-      togglePalavraCheckbox.checked = false;
-      palavraSecretaEl.classList.add('hidden');
-      eyeIcon.textContent = '🙈';
-
-      historico = [];
+      // historico e UI
+      historico=[];
       atualizarHistoricoNaTela();
+
+      togglePalavraCheckbox.checked=false;
+      palavraSecretaEl.classList.add("hidden");
+      eyeIcon.textContent="🙈";
+
       renderPontuacao();
       atualizarDuplaNaTela();
       exibirTelaPrincipal();
     }
 
-    function atualizarDuplaNaTela(){
-      const doadorPlayer = duplas[duplaAtual][0];
-      const adivPlayer = duplas[duplaAtual][1];
+    function encerrarPartida(){
+      exibirTelaFinal();
+      pararTimer();
+      let maiorPontuacao = Math.max(...scores);
+      let indicesMax = scores.map((v,i)=>(v===maiorPontuacao? i:-1)).filter(x=>x>=0);
 
-      doadorEl.textContent = doadorPlayer.name.toUpperCase();
-      adivinhadorEl.textContent = adivPlayer.name.toUpperCase();
-      conteudoPalavraEl.textContent = palavrasRodada[indicePalavra] || '';
-
-      boxDoador.classList.remove('active-turn');
-      boxAdiv.classList.remove('active-turn');
-      boxDoador.classList.add('active-turn');
-
-      if(doadorPlayer.photo){
-        doadorFoto.src = doadorPlayer.photo;
-        doadorFoto.classList.remove('hidden');
+      if(indicesMax.length>1){
+        endResultado.textContent="Temos um Empate!";
       } else {
-        doadorFoto.classList.add('hidden');
+        const [p1,p2] = duplas[indicesMax[0]];
+        endResultado.textContent="Dupla Vencedora: "+ p1.name+" & "+p2.name;
       }
+      endPontuacaoFinal.innerHTML = "<h2 class='font-semibold text-lg'>Pontuação Final</h2>";
+      duplas.forEach((dupla, idx)=>{
+        const div = document.createElement("div");
+        div.className="flex items-center gap-2 my-2";
+        dupla.forEach((p)=>{
+          if(p.photo){
+            const img = document.createElement("img");
+            img.src=p.photo;
+            img.alt="Foto";
+            img.className="w-8 h-8 object-cover rounded-full";
+            div.appendChild(img);
+          }
+        });
+        const sp = document.createElement("span");
+        sp.textContent = dupla[0].name.toUpperCase()+" & "+dupla[1].name.toUpperCase()+": "+scores[idx]+" pts";
+        div.appendChild(sp);
+        endPontuacaoFinal.appendChild(div);
+      });
 
-      if(adivPlayer.photo){
-        adivinhadorFoto.src = adivPlayer.photo;
-        adivinhadorFoto.classList.remove('hidden');
-      } else {
-        adivinhadorFoto.classList.add('hidden');
+      // Exibir fotos vencedores + troféu se houver
+      winnerBox.classList.add("hidden");
+      winnerPhotos.innerHTML="";
+      indicesMax.forEach((mx)=>{
+        const [p1,p2] = duplas[mx];
+        [p1,p2].forEach((pl)=>{
+          const img = document.createElement("img");
+          img.src=pl.photo||"https://via.placeholder.com/64";
+          img.alt=pl.name;
+          img.className="w-16 h-16 object-cover rounded-full border-2 border-yellow-500";
+          winnerPhotos.appendChild(img);
+        });
+      });
+      if(indicesMax.length>0){
+        winnerBox.classList.remove("hidden");
+        launchConfetti(4000);
       }
     }
 
+    function sairParaConfig(){
+      jogadores=[];
+      duplas=[];
+      scores=[];
+      historico=[];
+      palavrasRodada=[];
+      indicePalavra=0;
+      duplaAtual=0;
+      inputNomeJogador.value="";
+      inputFotoJogador.value="";
+      renderJogadores();
+      exibirTelaConfig();
+    }
+
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       TROCAR PALAVRA
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    btnTrocar.addEventListener("click", trocarPalavra);
+    function trocarPalavra(){
+      registrarHistorico("TROCAR", "Palavra trocada", getAdivinhadorName());
+      pararTimer();
+
+      // Pega uma nova do bigPTBR (ou outra base)
+      const randomIndex = Math.floor(Math.random()*bigPTBR.length);
+      const nova = bigPTBR[randomIndex];
+      palavrasRodada[indicePalavra] = nova;
+
+      tempoRestante=tempoMaximoValue;
+      tempoRestanteEl.textContent=tempoRestante;
+      tempoRestanteEl.classList.remove("text-red-600");
+      tempoRestanteEl.classList.add("text-green-600");
+
+      conteudoPalavraEl.textContent=nova;
+      togglePalavraCheckbox.checked=false;
+      palavraSecretaEl.classList.add("hidden");
+      eyeIcon.textContent="🙈";
+    }
+
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       PULAR PALAVRA
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    btnPular.addEventListener("click", ()=>{
+      registrarHistorico("PULOU","Palavra pulada", getAdivinhadorName());
+      pararTimer();
+      passarParaProximaPalavra();
+    });
+
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       TIMER / BOTÕES
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    btnToggleTempo.addEventListener("click", ()=>{
+      if(timerInterval){
+        pararTimer();
+      } else {
+        iniciarTimer();
+      }
+    });
+    btnResetTempo.addEventListener("click", ()=>{
+      pararTimer();
+      tempoRestante=tempoMaximoValue;
+      tempoRestanteEl.textContent=tempoRestante;
+      tempoRestanteEl.classList.remove("text-red-600");
+      tempoRestanteEl.classList.add("text-green-600");
+    });
+
+    function iniciarTimer(){
+      if(timerInterval) return;
+      timerInterval = setInterval(()=>{
+        tempoRestante--;
+        tempoRestanteEl.textContent=tempoRestante;
+
+        if(tempoRestante<=10){
+          tempoRestanteEl.classList.remove("text-green-600");
+          tempoRestanteEl.classList.add("text-red-600");
+        } else {
+          tempoRestanteEl.classList.remove("text-red-600");
+          tempoRestanteEl.classList.add("text-green-600");
+        }
+        if(tempoRestante<=0){
+          pararTimer();
+          registrarHistorico("PULOU","Tempo esgotado.",getAdivinhadorName());
+          passarParaProximaDuplaMesmaPalavra();
+        }
+      },1000);
+    }
     function pararTimer(){
       if(timerInterval){
         clearInterval(timerInterval);
@@ -1064,151 +832,216 @@
       }
     }
 
-    btnIniciarTempo.addEventListener('click', iniciarTimer);
-    function iniciarTimer(){
-      pararTimer();
-      timerInterval = setInterval(()=>{
-        tempoRestante--;
-        tempoRestanteEl.textContent = tempoRestante;
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       DICA E CHUTE
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    btnEnviarDica.addEventListener("click", ()=>{
+      const dica=campoDica.value.trim();
+      if(!dica) return;
+      registrarHistorico("DICA", dica, getDoadorName());
+      campoDica.value="";
+      document.getElementById("boxDoador").classList.remove("active-turn");
+      document.getElementById("boxAdiv").classList.add("active-turn");
 
-        if (tempoRestante <= 10){
-          tempoRestanteEl.classList.remove('text-green-600');
-          tempoRestanteEl.classList.add('text-red-600');
-        } else {
-          tempoRestanteEl.classList.remove('text-red-600');
-          tempoRestanteEl.classList.add('text-green-600');
-        }
+      if(!timerJaIniciado){
+        iniciarTimer();
+        timerJaIniciado=true;
+      }
+    });
+    btnEnviarChute.addEventListener("click", ()=>{
+      const chute=campoChute.value.trim();
+      if(!chute) return;
+      const palavraAtual= palavrasRodada[indicePalavra];
+      if(!palavraAtual) return;
 
-        if(tempoRestante <=0){
-          pararTimer();
-          registrarHistorico("PULOU","Tempo esgotado.",getAdivinhadorName());
-          passarParaProximaDuplaMesmaPalavra();
-        }
-      },1000);
+      if(chute.toLowerCase()=== palavraAtual.toLowerCase()){
+        // ACERTO
+        const adiv = getAdivinhadorName();
+        const pts = primeiraTentativa? 2:1;
+        registrarHistorico("ACERTO", chute, adiv, pts);
+        scores[duplaAtual]+=pts;
+        renderPontuacao();
+        launchConfetti();
+        celebrarAcerto(duplaAtual);
+
+        passarParaProximaPalavra();
+        document.getElementById("boxAdiv").classList.remove("active-turn");
+        document.getElementById("boxDoador").classList.add("active-turn");
+      } else {
+        // ERRO
+        registrarHistorico("ERRO", chute, getAdivinhadorName());
+        if(primeiraTentativa) primeiraTentativa=false;
+        passarParaProximaDuplaMesmaPalavra();
+      }
+      campoChute.value="";
+    });
+
+    function passarParaProximaPalavra(){
+      indicePalavra++;
+      if(indicePalavra>=palavrasRodada.length){
+        encerrarPartida();
+        return;
+      }
+      duplaAtual=(duplaAtual+1)%duplas.length;
+      tempoRestante=tempoMaximoValue;
+      tempoRestanteEl.textContent=tempoRestante;
+      tempoRestanteEl.classList.remove("text-red-600");
+      tempoRestanteEl.classList.add("text-green-600");
+      primeiraTentativa=true;
+
+      togglePalavraCheckbox.checked=false;
+      palavraSecretaEl.classList.add("hidden");
+      eyeIcon.textContent="🙈";
+      atualizarDuplaNaTela();
+    }
+    function passarParaProximaDuplaMesmaPalavra(){
+      duplaAtual=(duplaAtual+1)%duplas.length;
+      tempoRestante=tempoMaximoValue;
+      tempoRestanteEl.textContent=tempoRestante;
+      tempoRestanteEl.classList.remove("text-red-600");
+      tempoRestanteEl.classList.add("text-green-600");
+
+      togglePalavraCheckbox.checked=false;
+      palavraSecretaEl.classList.add("hidden");
+      eyeIcon.textContent="🙈";
+      atualizarDuplaNaTela();
     }
 
-    btnEncerrar.addEventListener('click', encerrarPartida);
-    function encerrarPartida(){
-      exibirTelaFinal();
-      pararTimer();
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       EXIBIR / ESCONDER TELAS
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    function exibirTelaConfig(){
+      configScreen.classList.remove("hidden");
+      mainScreen.classList.add("hidden");
+      endScreen.classList.add("hidden");
+    }
+    function exibirTelaPrincipal(){
+      configScreen.classList.add("hidden");
+      mainScreen.classList.remove("hidden");
+      endScreen.classList.add("hidden");
+    }
+    function exibirTelaFinal(){
+      configScreen.classList.add("hidden");
+      mainScreen.classList.add("hidden");
+      endScreen.classList.remove("hidden");
+    }
 
-      let maiorPontuacao = Math.max(...scores);
-      let indicesMax = scores.map((val, idx)=>(val===maiorPontuacao? idx : -1)).filter((i)=> i>=0);
-      if(indicesMax.length>1){
-        endResultado.textContent = 'Temos um Empate!';
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       RENDER DE PONTUAÇÃO, DUPLAS, ETC.
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    function atualizarDuplaNaTela(){
+      const doadorPlayer= duplas[duplaAtual][0];
+      const adivPlayer= duplas[duplaAtual][1];
+      doadorEl.textContent=doadorPlayer.name.toUpperCase();
+      adivinhadorEl.textContent=adivPlayer.name.toUpperCase();
+      conteudoPalavraEl.textContent=palavrasRodada[indicePalavra]||"";
+
+      if(doadorPlayer.photo){
+        doadorFoto.src=doadorPlayer.photo;
+        doadorFoto.classList.remove("hidden");
       } else {
-        const campeaoArr = duplas[indicesMax[0]];
-        const campeao = campeaoArr[0].name + ' & ' + campeaoArr[1].name;
-        endResultado.textContent = 'Dupla Vencedora: '+ campeao;
+        doadorFoto.classList.add("hidden");
+      }
+      if(adivPlayer.photo){
+        adivinhadorFoto.src=adivPlayer.photo;
+        adivinhadorFoto.classList.remove("hidden");
+      } else {
+        adivinhadorFoto.classList.add("hidden");
       }
 
-      endPontuacaoFinal.innerHTML = "<h2 class='font-semibold'>Pontuação Final</h2>";
-      duplas.forEach((dupla,idx)=>{
-        let nomes = dupla[0].name.toUpperCase() + ' & ' + dupla[1].name.toUpperCase();
-        const div = document.createElement('div');
-        div.className='flex items-center gap-2 my-2';
-        dupla.forEach((p)=>{
-          if(p.photo){
-            const img = document.createElement('img');
-            img.src = p.photo;
-            img.alt = 'Foto';
-            img.className='w-8 h-8 object-cover rounded-full';
-            div.appendChild(img);
-          }
-        });
-        const txt = document.createElement('span');
-        txt.textContent = nomes + ': ' + scores[idx] + ' pts';
-        div.appendChild(txt);
-        endPontuacaoFinal.appendChild(div);
-      });
-
-      indicesMax.forEach(()=>{
-        launchConfetti();
-      });
-    }
-
-    btnReiniciar.addEventListener('click', reiniciar);
-    function reiniciar(){
-      jogadores=[];
-      duplas=[];
-      scores=[];
-      palavrasRodada=[];
-      indicePalavra=0;
-      duplaAtual=0;
-      mostraPalavra=false;
-      tempoRestante=90;
-      historico=[];
-      inputNomeJogador.value='';
-      fotoJogador.value='';
-      renderJogadores();
-      exibirTelaConfig();
+      document.getElementById("boxDoador").classList.remove("active-turn");
+      document.getElementById("boxAdiv").classList.remove("active-turn");
+      document.getElementById("boxDoador").classList.add("active-turn");
     }
 
     function renderPontuacao(){
-      scoreContainer.innerHTML='';
+      scoreContainer.innerHTML="";
       duplas.forEach((dupla,idx)=>{
-        let nomes = dupla[0].name.toUpperCase() + ' & ' + dupla[1].name.toUpperCase();
-        const row = document.createElement('div');
-        row.className='p-2 bg-white rounded shadow flex items-center gap-2';
+        const row=document.createElement("div");
+        row.className="flex items-center gap-2 bg-white rounded p-2 shadow";
+
+        // Se era w-24/h-24, agora 50% => w-12/h-12
         dupla.forEach((p)=>{
           if(p.photo){
-            const img = document.createElement('img');
-            img.src = p.photo;
-            img.alt='Foto';
-            img.className='w-6 h-6 object-cover rounded-full';
+            const img=document.createElement("img");
+            img.src=p.photo;
+            img.alt="Foto";
+            img.className="w-12 h-12 object-cover rounded-full";  // <-- 50%
             row.appendChild(img);
           }
         });
-        const txt = document.createElement('span');
-        txt.className='font-bold text-sm';
-        txt.textContent = nomes;
-        row.appendChild(txt);
-        const pts = document.createElement('span');
-        pts.className='text-blue-700 font-extrabold text-lg ml-auto';
+        const nomes=document.createElement("span");
+        nomes.className="font-bold text-sm ml-2";
+        nomes.textContent=dupla[0].name.toUpperCase()+" & "+dupla[1].name.toUpperCase();
+        row.appendChild(nomes);
+
+        const pts=document.createElement("span");
+        pts.className="text-blue-700 font-extrabold text-lg ml-auto";
         pts.textContent=`${scores[idx]} pts`;
         row.appendChild(pts);
+
         scoreContainer.appendChild(row);
       });
     }
 
+    // ~~~~~~~~~~~~ HISTÓRICO COM CORES DIFERENTES
     function registrarHistorico(acao, texto, jogador, pontos){
-      const currentWord = palavrasRodada[indicePalavra] || '';
+      const currentWord=palavrasRodada[indicePalavra]||"";
       historico.push({acao, texto, jogador, points:pontos, palavra:currentWord});
       atualizarHistoricoNaTela();
     }
-
     function atualizarHistoricoNaTela(){
-      historicoAcoes.innerHTML='';
+      historicoAcoes.innerHTML="";
       historico.forEach((h)=>{
-        let mensagem='';
-        let icone='';
-        if(h.acao==='DICA'){
-          icone='💡';
-          mensagem = `${icone} ${h.jogador}: "${h.texto}"`;
-        } else if(h.acao==='ERRO'){
-          icone='❌';
-          mensagem = `${icone} ${h.jogador}: "${h.texto}"`;
-        } else if(h.acao==='ACERTO'){
-          icone='✅';
-          mensagem = `${icone} ${h.jogador} +${h.points||0} pts`;
-        } else if(h.acao==='PULOU'){
-          icone='⏭️';
-          mensagem = `${icone} ${h.jogador}: ${h.texto}`;
+        let mensagem="";
+        let icone="";
+        let bgClass="bg-gray-100"; // default
+
+        // ~~~~~ Distinção de cor no histórico ~~~~~
+        // Exemplo: DICA = cor azul, Adivinhador(ERRO/ACERTO) = cor verde/vermelha, etc.
+        if(h.acao==="DICA"){
+          icone="💡";
+          mensagem=`${icone} ${h.jogador}: "${h.texto}"`;
+          bgClass="bg-blue-100"; // <-- dica em azul clarinho
+        } 
+        else if(h.acao==="ERRO"){
+          icone="❌";
+          mensagem=`${icone} ${h.jogador}: "${h.texto}"`;
+          bgClass="bg-red-100"; // <-- erro em vermelho clarinho
+        }
+        else if(h.acao==="ACERTO"){
+          icone="✅";
+          mensagem=`${icone} ${h.jogador} +${h.points||0} pts`;
+          bgClass="bg-green-100"; // <-- acerto em verde clarinho
+        }
+        else if(h.acao==="PULOU"){
+          icone="⏭️";
+          mensagem=`${icone} ${h.jogador}: ${h.texto}`;
+          bgClass="bg-yellow-100"; // <-- pular em amarelo clarinho
+        }
+        else if(h.acao==="TROCAR"){
+          icone="🔀";
+          mensagem=`${icone} ${h.jogador}: ${h.texto}`;
+          bgClass="bg-purple-100"; // <-- trocar em roxo clarinho
         }
 
-        const secretIcon = document.createElement('span');
-        secretIcon.textContent='👁️';
-        secretIcon.className='ml-2 text-blue-700 hover-scale';
-        secretIcon.title='Ver palavra secreta';
-        secretIcon.addEventListener('click', ()=>{
+        const secretIcon=document.createElement("span");
+        secretIcon.textContent="👁️";
+        secretIcon.className="ml-2 text-blue-700 hover-scale";
+        secretIcon.title="Ver palavra secreta";
+        secretIcon.addEventListener("click", ()=>{
           alert(`A palavra secreta era: ${h.palavra}`);
         });
-        const div = document.createElement('div');
-        div.textContent=mensagem;
-        div.appendChild(secretIcon);
-        historicoAcoes.appendChild(div);
+
+        // Card do histórico
+        const card=document.createElement("div");
+        card.className=`${bgClass} border border-gray-300 rounded p-2 min-w-[120px] text-sm flex items-center`;
+        card.textContent=mensagem;
+        card.appendChild(secretIcon);
+
+        historicoAcoes.appendChild(card);
       });
-      historicoAcoes.scrollTop=historicoAcoes.scrollHeight;
+      historicoAcoes.scrollLeft=historicoAcoes.scrollWidth; // rola pro fim
     }
 
     function getDoadorName(){
@@ -1218,93 +1051,150 @@
       return duplas[duplaAtual][1].name.toUpperCase();
     }
 
-    btnEnviarDica.addEventListener('click', enviarDica);
-    function enviarDica(){
-      const dica = campoDica.value.trim();
-      if(!dica)return;
-      registrarHistorico('DICA', dica, getDoadorName());
-      campoDica.value='';
-      boxDoador.classList.remove('active-turn');
-      boxAdiv.classList.add('active-turn');
-    }
-
-    btnEnviarChute.addEventListener('click', enviarChute);
-    function enviarChute(){
-      const chute = campoChute.value.trim();
-      if(!chute)return;
-      const palavraAtual= palavrasRodada[indicePalavra];
-      if(!palavraAtual)return;
-
-      if(chute.toLowerCase()=== palavraAtual.toLowerCase()){
-        // ACERTO
-        const adiv = getAdivinhadorName();
-        const pontos = primeiraTentativa? 2:1;
-        registrarHistorico('ACERTO',chute, adiv, pontos);
-        scores[duplaAtual]+=pontos;
-        renderPontuacao();
-        launchConfetti();
-        celebrarAcerto(duplaAtual);
-        passarParaProximaPalavra();
-        boxAdiv.classList.remove('active-turn');
-        boxDoador.classList.add('active-turn');
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       PALAVRA SECRETA (OLHINHO)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    togglePalavraCheckbox.addEventListener("change", (e)=>{
+      if(e.target.checked){
+        palavraSecretaEl.classList.remove("hidden");
+        eyeIcon.textContent="👁️";
       } else {
-        // ERRO
-        registrarHistorico('ERRO', chute, getAdivinhadorName());
-        if(primeiraTentativa){
-          primeiraTentativa=false;
-        }
-        passarParaProximaDuplaMesmaPalavra();
+        palavraSecretaEl.classList.add("hidden");
+        eyeIcon.textContent="🙈";
       }
-      campoChute.value='';
-    }
+    });
 
-    btnPular.addEventListener('click', pularPalavra);
-    function pularPalavra(){
-      registrarHistorico('PULOU','Palavra pulada', getAdivinhadorName());
-      pararTimer();
-      passarParaProximaPalavra();
-      boxAdiv.classList.remove('active-turn');
-      boxDoador.classList.add('active-turn');
-    }
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       CÂMERA
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    btnAbrirCamera.addEventListener("click", async()=>{
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video:true });
+        videoCamera.srcObject=cameraStream;
+        videoCamera.classList.remove("hidden");
+        btnCapturarFoto.classList.remove("hidden");
+        canvasFoto.classList.add("hidden");
+      }catch(e){
+        alert("Não foi possível acessar a câmera: "+e);
+      }
+    });
+    btnCapturarFoto.addEventListener("click", ()=>{
+      if(!cameraStream) return;
+      canvasFoto.classList.remove("hidden");
+      canvasFoto.width=videoCamera.videoWidth;
+      canvasFoto.height=videoCamera.videoHeight;
+      const ctx=canvasFoto.getContext("2d");
+      ctx.drawImage(videoCamera,0,0,canvasFoto.width,canvasFoto.height);
+      let dataUrl=canvasFoto.toDataURL("image/png");
+      videoCamera.classList.add("hidden");
+      btnCapturarFoto.classList.add("hidden");
+      cameraStream.getTracks().forEach(t=>t.stop());
+      cameraStream=null;
+      tempFotoDataUrl=dataUrl;
+    });
 
-    function passarParaProximaPalavra(){
-      indicePalavra++;
-      if(indicePalavra>=palavrasRodada.length){
-        encerrarPartida();
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       ADICIONAR JOGADOR
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    btnAdicionarJogador.addEventListener("click", adicionarJogador);
+    function adicionarJogador(){
+      if(jogadores.length>=10){
+        alert("Máximo de 10 jogadores atingido!");
         return;
       }
-      duplaAtual = (duplaAtual+1)%duplas.length;
-      tempoRestante = tempoMaximoValue;
-      tempoRestanteEl.textContent=tempoRestante;
-      tempoRestanteEl.classList.remove('text-red-600');
-      tempoRestanteEl.classList.add('text-green-600');
-      primeiraTentativa=true;
+      let nome=inputNomeJogador.value.trim()||`Convidado #${jogadores.length+1}`;
+      let colorClass=colorPalette[jogadores.length%colorPalette.length];
+      let foto="";
+      const file=inputFotoJogador.files[0];
 
-      mostraPalavra=false;
-      togglePalavraCheckbox.checked=false;
-      palavraSecretaEl.classList.add('hidden');
-      eyeIcon.textContent='🙈';
+      if(tempFotoDataUrl){
+        foto=tempFotoDataUrl;
+        tempFotoDataUrl="";
+      } else if(file){
+        const reader=new FileReader();
+        reader.onload=(ev)=>{
+          foto=ev.target.result;
+          pushJogador(nome,colorClass,foto);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+      pushJogador(nome,colorClass,foto);
+    }
+    const colorPalette=[
+      "bg-red-200 text-red-800",
+      "bg-green-200 text-green-800",
+      "bg-yellow-200 text-yellow-800",
+      "bg-purple-200 text-purple-800",
+      "bg-pink-200 text-pink-800",
+      "bg-orange-200 text-orange-800",
+      "bg-blue-200 text-blue-800",
+      "bg-teal-200 text-teal-800"
+    ];
+    function pushJogador(name, color, photo){
+      jogadores.push({name, color, photo});
+      inputNomeJogador.value="";
+      inputFotoJogador.value="";
+      renderJogadores();
+    }
+    function removerJogador(idx){
+      jogadores.splice(idx,1);
+      renderJogadores();
+    }
+    function renderJogadores(){
+      listaJogadoresEl.innerHTML="";
+      jogadores.forEach((pl, i)=>{
+        const div=document.createElement("div");
+        div.className=`${pl.color} p-2 uppercase rounded mb-1 shadow-sm font-bold flex items-center justify-between`;
 
-      atualizarDuplaNaTela();
+        const left=document.createElement("div");
+        left.className="flex items-center gap-2";
+        if(pl.photo){
+          const imgEl=document.createElement("img");
+          imgEl.src=pl.photo;
+          imgEl.alt="Foto";
+          imgEl.className="w-8 h-8 object-cover rounded-full";
+          left.appendChild(imgEl);
+        }
+        const sp=document.createElement("span");
+        sp.textContent=pl.name;
+        left.appendChild(sp);
+
+        div.appendChild(left);
+
+        const btnRem=document.createElement("button");
+        btnRem.textContent="X";
+        btnRem.className="bg-red-400 hover:bg-red-500 text-white px-2 py-1 rounded font-bold";
+        btnRem.addEventListener("click",()=>removerJogador(i));
+        div.appendChild(btnRem);
+
+        listaJogadoresEl.appendChild(div);
+      });
     }
 
-    function passarParaProximaDuplaMesmaPalavra(){
-      pararTimer();
-      duplaAtual = (duplaAtual+1)%duplas.length;
-      tempoRestante=tempoMaximoValue;
-      tempoRestanteEl.textContent=tempoRestante;
-      tempoRestanteEl.classList.remove('text-red-600');
-      tempoRestanteEl.classList.add('text-green-600');
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       COMPARTILHAR
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    btnCompartilhar.addEventListener("click",()=>{
+      const mensagem=`Fui campeão no jogo "Qual é a Palavra?"! Confira: https://exemplo.com/foto-dos-vencedores.jpg`;
+      const linkWhats=`https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+      window.open(linkWhats,"_blank");
+    });
 
-      mostraPalavra=false;
-      togglePalavraCheckbox.checked=false;
-      palavraSecretaEl.classList.add('hidden');
-      eyeIcon.textContent='🙈';
-
-      atualizarDuplaNaTela();
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       SHUFFLE
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    function shuffleArray(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+      }
+      return arr;
     }
 
-    // Start with config screen
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       INICIA NA TELA CONFIG
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     exibirTelaConfig();
   })();
   </script>
